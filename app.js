@@ -1,5 +1,5 @@
 import {createResolver} from './resolver.js';
-const $=id=>document.getElementById(id);let r,v,db,scale=1,active,fullImageURL,savedVehicles=[],groupNames={};const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=value;return e};
+const $=id=>document.getElementById(id);let r,v,db,scale=1,active,fullImageURL,diagramHistory=[],savedVehicles=[],groupNames={};const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=value;return e};
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('asa-pocket',1);req.onupgradeneeded=()=>req.result.createObjectStore('catalogue');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 function readPack(key='active'){return new Promise((resolve,reject)=>{const req=db.transaction('catalogue').objectStore('catalogue').get(key);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 function storePack(pack,key='active'){return new Promise((resolve,reject)=>{const tx=db.transaction('catalogue','readwrite');tx.objectStore('catalogue').put(pack,key);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error('Storage was interrupted'))})}
@@ -12,10 +12,10 @@ async function importPack(blob){$('importStatus').textContent='Reading and check
 $('namesfile').onchange=e=>{if(e.target.files[0])importPack(e.target.files[0])};$('file').onchange=e=>{if(e.target.files[0])importPack(e.target.files[0])};$('settings').onclick=()=>{$('setup').hidden=false;$('workspace').hidden=true;$('drawing').hidden=true;$('importStatus').textContent=r?'Choose a new pack to replace this device’s catalogue.':''};
 if(['localhost','127.0.0.1'].includes(location.hostname)){$('testpack').hidden=false;$('testpack').onclick=async()=>{try{await importPack(await(await fetch('local-test-pack.asapack.gz')).blob())}catch(e){$('importStatus').textContent=e.message}}}
 $('searchForm').onsubmit=e=>{e.preventDefault();$('results').replaceChildren();const found=r.search($('query').value);if(!found.length)$('results').append(text('p','No matching chassis in this catalogue.'));for(const item of found){const b=text('button',`${item.model}-${item.serial_number} · ${item.classification}`);b.className='result';b.onclick=()=>select(item);$('results').append(b)}if(found.length===1)select(found[0])};
-function select(item,preserveNavigation=false){if(!preserveNavigation){browseCategory=null;browseSubgroup=null;}$('partSearchResults').replaceChildren();$('partSearchStatus').textContent='';$('morePartResults').hidden=true;releaseImages();v=item;$('results').replaceChildren();$('drawing').hidden=true;$('vehicle').replaceChildren();$('groups').replaceChildren();const card=document.createElement('article');card.className='card';card.append(text('h2',`${v.model}-${v.serial_number}`));const meta=document.createElement('div');meta.className='meta';for(const [k,value]of [['Model',v.type||v.model],['Classification',v.classification],['Production',v.production_period??'Unknown'],['OPC',v.opc],['Exterior code',v.exterior||'Not decoded'],['Interior code',v.interior||'Not decoded']]){const f=document.createElement('div');f.append(text('small',k),text('span',value));meta.append(f)}const details=document.createElement('details');details.append(text('summary','Vehicle details'),meta);card.append(details);const o=text('p',r.unknown(v)?'Factory options require verification. Option-dependent parts are candidates.':'Factory options: '+([...r.options(v)].join(' · ')||'No Option IDs in matched package'));o.className=r.unknown(v)?'warning':'options';details.append(o);const saveButton=text('button',savedVehicles.some(x=>x.chassis===chassisKey(v))?'Edit saved vehicle':'Save vehicle');saveButton.id='saveCurrentVehicle';saveButton.onclick=openSaveVehicle;card.append(saveButton);$('vehicle').append(card);const seenIllustrations=new Set;catalogueDiagrams=r.diagrams(v).filter(d=>{if(seenIllustrations.has(d.illustration_id))return false;seenIllustrations.add(d.illustration_id);return true;}).map(d=>{const code=d.illustration_id.match(/^\d(\d{2})_(\d{3})/);return code?{...d,main_group:code[1],sub_group:code[2]}:d;});renderCatalogueBrowser();}
+function select(item,preserveNavigation=false){diagramHistory=[];if(!preserveNavigation){browseCategory=null;browseSubgroup=null;}$('partSearchResults').replaceChildren();$('partSearchStatus').textContent='';$('morePartResults').hidden=true;releaseImages();v=item;$('results').replaceChildren();$('drawing').hidden=true;$('vehicle').replaceChildren();$('groups').replaceChildren();const card=document.createElement('article');card.className='card';card.append(text('h2',`${v.model}-${v.serial_number}`));const meta=document.createElement('div');meta.className='meta';for(const [k,value]of [['Model',v.type||v.model],['Classification',v.classification],['Production',v.production_period??'Unknown'],['OPC',v.opc],['Exterior code',v.exterior||'Not decoded'],['Interior code',v.interior||'Not decoded']]){const f=document.createElement('div');f.append(text('small',k),text('span',value));meta.append(f)}const details=document.createElement('details');details.append(text('summary','Vehicle details'),meta);card.append(details);const o=text('p',r.unknown(v)?'Factory options require verification. Option-dependent parts are candidates.':'Factory options: '+([...r.options(v)].join(' · ')||'No Option IDs in matched package'));o.className=r.unknown(v)?'warning':'options';details.append(o);const saveButton=text('button',savedVehicles.some(x=>x.chassis===chassisKey(v))?'Edit saved vehicle':'Save vehicle');saveButton.id='saveCurrentVehicle';saveButton.onclick=openSaveVehicle;card.append(saveButton);$('vehicle').append(card);const seenIllustrations=new Set;catalogueDiagrams=r.diagrams(v).filter(d=>{if(seenIllustrations.has(d.illustration_id))return false;seenIllustrations.add(d.illustration_id);return true;}).map(d=>{const code=d.illustration_id.match(/^\d(\d{2})_(\d{3})/);return code?{...d,main_group:code[1],sub_group:code[2]}:d;});renderCatalogueBrowser();}
 
 function draw(d){
- active=d;$('drawing').hidden=false;$('workspace').hidden=true;
+ active=d;$('previousImage').hidden=!diagramHistory.length;$('drawing').hidden=false;$('workspace').hidden=true;
  $('drawingTitle').textContent=d.illustration_id;$('canvas').replaceChildren();
  $('directImage').hidden=true;
  if(!r.pack.images[d.illustration_id]){
@@ -50,7 +50,7 @@ function diagramReference(h){
 function referenceTargets(reference){return catalogueDiagrams.filter(d=>d.main_group===reference.main&&d.sub_group===reference.sub);}
 function openReference(reference){
  const targets=referenceTargets(reference),title='Reference '+reference.main+'-'+reference.sub;
- const open=d=>{browseCategory=categoryOf(d);browseSubgroup=d.main_group+'|'+d.sub_group;$('parts').close();draw(d);};
+ const open=d=>{diagramHistory.push({diagram:active,scale,top:$('viewport').scrollTop,left:$('viewport').scrollLeft,category:browseCategory,subgroup:browseSubgroup});browseCategory=categoryOf(d);browseSubgroup=d.main_group+'|'+d.sub_group;$('parts').close();draw(d);};
  if(targets.length===1){open(targets[0]);return;}
  $('partContent').replaceChildren(text('h2',title));
  if(!targets.length)$('partContent').append(text('p','No applicable drawing for this reference is available in the imported catalogue.'));
@@ -59,6 +59,28 @@ function openReference(reference){
  }
  $('parts').showModal();
 }
+function previousImage(){
+ const previous=diagramHistory.pop();if(!previous)return;
+ browseCategory=previous.category;browseSubgroup=previous.subgroup;
+ draw(previous.diagram);scale=previous.scale;resize();
+ $('viewport').scrollTop=previous.top;$('viewport').scrollLeft=previous.left;
+}
+$('previousImage').onclick=previousImage;
+function isBackSwipe(start,end){return end.x-start.x>=80&&Math.abs(end.y-start.y)<40&&end.time-start.time<800;}
+let backSwipe=null;
+$('viewport').addEventListener('touchstart',e=>{
+ backSwipe=null;if(e.touches.length!==1||!diagramHistory.length||!active)return;
+ const viewport=$('viewport'),touch=e.touches[0],edge=touch.clientX-viewport.getBoundingClientRect().left;
+ // Reserve the left edge at fit size; zoomed diagrams retain normal panning.
+ if(edge>=0&&edge<=40&&viewport.scrollLeft===0&&active.width*scale<=viewport.clientWidth+2)
+  backSwipe={x:touch.clientX,y:touch.clientY,time:e.timeStamp};
+},{passive:true});
+$('viewport').addEventListener('touchmove',e=>{if(e.touches.length!==1)backSwipe=null;},{passive:true});
+$('viewport').addEventListener('touchend',e=>{
+ const start=backSwipe;backSwipe=null;if(!start||e.touches.length||e.changedTouches.length!==1)return;
+ const touch=e.changedTouches[0];if(isBackSwipe(start,{x:touch.clientX,y:touch.clientY,time:e.timeStamp}))previousImage();
+},{passive:true});
+$('viewport').addEventListener('touchcancel',()=>{backSwipe=null;},{passive:true});
 function resize(){if(!active)return;$('canvas').style.width=active.width*scale+'px';$('canvas').style.height='auto';for(const b of $('canvas').querySelectorAll('button')){b.style.left=b.dataset.x*scale+'px';b.style.top=b.dataset.y*scale+'px';b.style.width=b.dataset.w*scale+'px';b.style.height=b.dataset.h*scale+'px'}$('zoomlevel').textContent=Math.round(scale*100)+'%'}
 $('zoomin').onclick=()=>{scale=Math.min(4,scale*1.3);resize()};$('zoomout').onclick=()=>{scale=Math.max(.2,scale/1.3);resize()};$('back').onclick=()=>{select(v,true);$('drawing').hidden=true;$('workspace').hidden=false};let pinch=null;const distance=ts=>Math.hypot(ts[0].clientX-ts[1].clientX,ts[0].clientY-ts[1].clientY);$('viewport').addEventListener('touchstart',e=>{if(e.touches.length===2)pinch={distance:distance(e.touches),scale}},{passive:true});$('viewport').addEventListener('touchmove',e=>{if(e.touches.length===2&&pinch){e.preventDefault();scale=Math.max(.2,Math.min(4,pinch.scale*distance(e.touches)/pinch.distance));resize()}},{passive:false});$('viewport').addEventListener('touchend',()=>pinch=null);
 function lookup(pnc){const result=r.lookup(v,pnc);$('partContent').replaceChildren(text('h2','PNC '+pnc),text('p',`${v.model}-${v.serial_number} · ${v.classification} · ${v.production_period??'Period unknown'}`));if(!result.parts.length)$('partContent').append(text('p',result.status==='notImported'?'Application data not imported. This does not establish that the part was not fitted.':'No applicable part for this chassis in the imported applications.'));for(const p of result.parts){const a=document.createElement('article');a.className='card';a.append(text('div',p.part_number),text('p',p.exact?'Matches decoded chassis conditions':'Candidate — requires verification'),text('p',p.qualifier?(r.pack.qualifierDescriptions[p.qualifier]||p.qualifier):'Generic application'),text('p',`Production ${p.start_period??'open'}–${p.end_period??'open'}`));a.firstChild.className='partno';$('partContent').append(a)}if(result.parts.length>1)$('partContent').append(text('p','Multiple part numbers remain. Replacement order has not been established.'));$('parts').showModal()}
