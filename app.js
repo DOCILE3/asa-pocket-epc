@@ -44,7 +44,7 @@ function draw(d){
 }
 function diagramReference(h){
  if(Number(h.flags)!==2)return null;
- const code=String(h.pnc).trim().match(/^(\d{2})[ -]+(\d{3})$/);
+ const code=String(h.pnc).trim().match(/^(\d{2})[ -]+(\d{3})\)?$/);
  return code?{main:code[1],sub:code[2]}:null;
 }
 function referenceTargets(reference){return catalogueDiagrams.filter(d=>d.main_group===reference.main&&d.sub_group===reference.sub);}
