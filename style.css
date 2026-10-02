@@ -4,3 +4,5 @@
 
 
 #savedVehicles{margin-bottom:28px}#savedVehicles h2{margin-top:0}.savedRow{display:flex;gap:10px;align-items:stretch;margin:10px 0}.savedOpen{flex:1;text-align:left;min-width:0}.savedOpen strong,.savedOpen small{display:block;overflow-wrap:anywhere}.savedOpen small{color:#b5c2cc;margin-top:5px;font-size:.875rem}.savedRemove{padding:10px;align-self:center;font-size:.875rem}.saveActions{display:flex;gap:12px;justify-content:flex-end;margin-top:20px}#confirmSaveVehicle{background:#ce363b}#saveVehicleError{color:#ffd18a}#savedVehicleStatus{font-size:.9rem}
+
+#partSearch{margin-top:2rem;padding-top:1rem;border-top:1px solid #34414a}#partSearchResults:empty{display:none}#partSearchResults small{display:block;color:#adb8c2}#partSearchResults h3{margin-top:0}#partSearchStatus{overflow-wrap:anywhere}
