@@ -1,4 +1,4 @@
-import {createResolver} from './resolver.js';
+import {createResolver} from './resolver.js?v=15';
 const $=id=>document.getElementById(id);let r,v,db,scale=1,active,fullImageURL,diagramHistory=[],savedVehicles=[],groupNames={};const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=value;return e};
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('asa-pocket',1);req.onupgradeneeded=()=>req.result.createObjectStore('catalogue');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 function readPack(key='active'){return new Promise((resolve,reject)=>{const req=db.transaction('catalogue').objectStore('catalogue').get(key);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
@@ -15,6 +15,8 @@ $('searchForm').onsubmit=e=>{e.preventDefault();$('results').replaceChildren();c
 function select(item,preserveNavigation=false){diagramHistory=[];if(!preserveNavigation){browseCategory=null;browseSubgroup=null;}$('partSearchResults').replaceChildren();$('partSearchStatus').textContent='';$('morePartResults').hidden=true;releaseImages();v=item;$('results').replaceChildren();$('drawing').hidden=true;$('vehicle').replaceChildren();$('groups').replaceChildren();const card=document.createElement('article');card.className='card';card.append(text('h2',`${v.model}-${v.serial_number}`));const meta=document.createElement('div');meta.className='meta';for(const [k,value]of [['Model',v.type||v.model],['Classification',v.classification],['Production',v.production_period??'Unknown'],['OPC',v.opc],['Exterior code',v.exterior||'Not decoded'],['Interior code',v.interior||'Not decoded']]){const f=document.createElement('div');f.append(text('small',k),text('span',value));meta.append(f)}const details=document.createElement('details');details.append(text('summary','Vehicle details'),meta);card.append(details);const o=text('p',r.unknown(v)?'Factory options require verification. Option-dependent parts are candidates.':'Factory options: '+([...r.options(v)].join(' · ')||'No Option IDs in matched package'));o.className=r.unknown(v)?'warning':'options';details.append(o);const saveButton=text('button',savedVehicles.some(x=>x.chassis===chassisKey(v))?'Edit saved vehicle':'Save vehicle');saveButton.id='saveCurrentVehicle';saveButton.onclick=openSaveVehicle;card.append(saveButton);$('vehicle').append(card);const seenIllustrations=new Set;catalogueDiagrams=r.diagrams(v).filter(d=>{if(seenIllustrations.has(d.illustration_id))return false;seenIllustrations.add(d.illustration_id);return true;}).map(d=>{const code=d.illustration_id.match(/^\d(\d{2})_(\d{3})/);return code?{...d,main_group:code[1],sub_group:code[2]}:d;});renderCatalogueBrowser();}
 
 function draw(d){
+ $('referenceNotice').hidden=!d.referenceOnly;
+ $('referenceNotice').textContent=d.referenceOnly?'Reference drawing outside the current browse selection. Part results remain filtered to your chassis.':'';
  active=d;$('previousImage').hidden=!diagramHistory.length;$('drawing').hidden=false;$('workspace').hidden=true;
  $('drawingTitle').textContent=d.illustration_id;$('canvas').replaceChildren();
  $('directImage').hidden=true;
@@ -47,13 +49,13 @@ function diagramReference(h){
  const code=String(h.pnc).trim().match(/^(\d{2})[ -]+(\d{3})\)?$/);
  return code?{main:code[1],sub:code[2]}:null;
 }
-function referenceTargets(reference){return catalogueDiagrams.filter(d=>d.main_group===reference.main&&d.sub_group===reference.sub);}
+function referenceTargets(reference){return r.referenceDiagrams(v,reference.main,reference.sub);}
 function openReference(reference){
  const targets=referenceTargets(reference),title='Reference '+reference.main+'-'+reference.sub;
- const open=d=>{diagramHistory.push({diagram:active,scale,top:$('viewport').scrollTop,left:$('viewport').scrollLeft,category:browseCategory,subgroup:browseSubgroup});browseCategory=categoryOf(d);browseSubgroup=d.main_group+'|'+d.sub_group;$('parts').close();draw(d);};
+ const open=d=>{diagramHistory.push({diagram:active,scale,top:$('viewport').scrollTop,left:$('viewport').scrollLeft,category:browseCategory,subgroup:browseSubgroup});browseCategory=categoryOf(d);browseSubgroup=d.main_group+'|'+d.sub_group;$('parts').close();draw({...d,referenceOnly:!catalogueDiagrams.some(item=>item.illustration_id===d.illustration_id)});};
  if(targets.length===1){open(targets[0]);return;}
  $('partContent').replaceChildren(text('h2',title));
- if(!targets.length)$('partContent').append(text('p','No applicable drawing for this reference is available in the imported catalogue.'));
+ if(!targets.length)$('partContent').append(text('p','No matching reference drawing is available in the imported catalogue.'));
  else{ $('partContent').append(text('p','Choose a drawing for '+subgroupLabel(targets[0])+'.'));
   for(const d of targets){const b=text('button',d.illustration_id);b.className='result';b.onclick=()=>open(d);$('partContent').append(b);}
  }
@@ -194,3 +196,4 @@ if('serviceWorker' in navigator && window.isSecureContext){
   $('offlineStatus').textContent='App saved for offline use. Import your catalogue here, then test in airplane mode.';
  }catch(e){$('offlineStatus').textContent='Offline setup failed. Reopen with internet access before testing offline.';}
 }else{$('offlineStatus').textContent='Offline installation needs a secure web address.';}
+
