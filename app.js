@@ -1,4 +1,4 @@
-import {createResolver} from './resolver.js?v=17';
+import {createResolver} from './resolver.js?v=18';
 const $=id=>document.getElementById(id);let r,v,db,scale=1,active,fullImageURL,diagramHistory=[],activeSeries=[],pageIndex=0,savedVehicles=[],groupNames={};const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=value;return e};
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('asa-pocket',1);req.onupgradeneeded=()=>req.result.createObjectStore('catalogue');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 function readPack(key='active'){return new Promise((resolve,reject)=>{const req=db.transaction('catalogue').objectStore('catalogue').get(key);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
@@ -14,7 +14,8 @@ if(['localhost','127.0.0.1'].includes(location.hostname)){$('testpack').hidden=f
 $('searchForm').onsubmit=e=>{e.preventDefault();$('results').replaceChildren();const found=r.search($('query').value);if(!found.length)$('results').append(text('p','No matching chassis in this catalogue.'));for(const item of found){const b=text('button',`${item.model}-${item.serial_number} · ${item.classification}`);b.className='result';b.onclick=()=>select(item);$('results').append(b)}if(found.length===1)select(found[0])};
 function select(item,preserveNavigation=false){diagramHistory=[];activeSeries=[];pageIndex=0;if(!preserveNavigation){browseCategory=null;browseSubgroup=null;}$('partSearchResults').replaceChildren();$('partSearchStatus').textContent='';$('morePartResults').hidden=true;releaseImages();v=item;$('results').replaceChildren();$('drawing').hidden=true;$('vehicle').replaceChildren();$('groups').replaceChildren();const card=document.createElement('article');card.className='card';card.append(text('h2',`${v.model}-${v.serial_number}`));const meta=document.createElement('div');meta.className='meta';for(const [k,value]of [['Model',v.type||v.model],['Classification',v.classification],['Production',v.production_period??'Unknown'],['OPC',v.opc],['Exterior code',v.exterior||'Not decoded'],['Interior code',v.interior||'Not decoded']]){const f=document.createElement('div');f.append(text('small',k),text('span',value));meta.append(f)}const details=document.createElement('details');details.append(text('summary','Vehicle details'),meta);card.append(details);const o=text('p',r.unknown(v)?'Factory options require verification. Option-dependent parts are candidates.':'Factory options: '+([...r.options(v)].join(' · ')||'No Option IDs in matched package'));o.className=r.unknown(v)?'warning':'options';details.append(o);const saveButton=text('button',savedVehicles.some(x=>x.chassis===chassisKey(v))?'Edit saved vehicle':'Save vehicle');saveButton.id='saveCurrentVehicle';saveButton.onclick=openSaveVehicle;card.append(saveButton);$('vehicle').append(card);const seenIllustrations=new Set;catalogueDiagrams=r.diagrams(v).filter(d=>{if(seenIllustrations.has(d.illustration_id))return false;seenIllustrations.add(d.illustration_id);return true;}).map(d=>{const code=d.illustration_id.match(/^\d(\d{2})_(\d{3})/);return code?{...d,main_group:code[1],sub_group:code[2]}:d;});renderCatalogueBrowser();}
 
-function draw(d,series=null,index=0){
+function draw(d,series=null,index=0,position=null){
+ const restorePosition=()=>{if(!position)return;$('viewport').scrollTop=position.top;$('viewport').scrollLeft=position.left;window.scrollTo(position.x,position.y);};
  if(series){activeSeries=series;pageIndex=index;}
  $('pageNavigation').hidden=activeSeries.length<2;$('pageCount').textContent='Diagram '+(pageIndex+1)+' of '+activeSeries.length;
  $('referenceNotice').hidden=!d.referenceOnly;
@@ -32,8 +33,8 @@ function draw(d,series=null,index=0){
  $('directImage').href=url;$('directImage').hidden=false;
  const img=document.createElement('img');
  img.className='diagramImage';img.alt='Original Mitsubishi exploded diagram';
- img.decoding='async';img.draggable=false;
- img.onload=()=>{if(img.isConnected)$('imageStatus').textContent='Image ready · viewer 5';};
+ img.decoding='async';img.draggable=false;img.width=d.width;img.height=d.height;
+ img.onload=()=>{if(img.isConnected){$('imageStatus').textContent='Image ready · viewer 5';restorePosition();}};
  img.onerror=()=>{$('imageStatus').textContent='Image could not be decoded. Use Open image directly.';};
  $('imageStatus').textContent='Loading image…';$('canvas').append(img);img.src=url;
  for(const h of r.hotspots(d.illustration_id)){
@@ -44,7 +45,7 @@ function draw(d,series=null,index=0){
   $('canvas').append(b);
  }
  scale=Math.min(1,$('viewport').clientWidth/d.width);resize();
- $('viewport').scrollTop=0;$('viewport').scrollLeft=0;$('drawing').scrollIntoView({block:'start'});
+ if(position)restorePosition();else{$('viewport').scrollTop=0;$('viewport').scrollLeft=0;$('drawing').scrollIntoView({block:'start'});}
 }
 function diagramReference(h){
  if(Number(h.flags)!==2)return null;
@@ -69,7 +70,8 @@ function previousImage(){
 function cycleDiagram(step){
  if(activeSeries.length<2)return;
  const index=(pageIndex+step+activeSeries.length)%activeSeries.length;
- draw(activeSeries[index],activeSeries,index);
+ const position={x:window.scrollX,y:window.scrollY,top:$('viewport').scrollTop,left:$('viewport').scrollLeft};
+ draw(activeSeries[index],activeSeries,index,position);
 }
 $('previousImage').onclick=previousImage;
 $('previousPage').onclick=()=>cycleDiagram(-1);$('nextPage').onclick=()=>cycleDiagram(1);
