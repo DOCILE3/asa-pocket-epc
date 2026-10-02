@@ -33,13 +33,31 @@ function draw(d){
  img.onerror=()=>{$('imageStatus').textContent='Image could not be decoded. Use Open image directly.';};
  $('imageStatus').textContent='Loading image…';$('canvas').append(img);img.src=url;
  for(const h of r.hotspots(d.illustration_id)){
-  const b=document.createElement('button');b.setAttribute('aria-label','PNC '+h.pnc);
-  b.dataset.pnc=h.pnc;b.onclick=()=>lookup(h.pnc);
+  const b=document.createElement('button');const reference=diagramReference(h);
+  b.setAttribute('aria-label',reference?'Open reference '+reference.main+'-'+reference.sub:'PNC '+h.pnc);
+  b.dataset.pnc=h.pnc;b.onclick=()=>reference?openReference(reference):lookup(h.pnc);
   b.dataset.x=h.x;b.dataset.y=h.y;b.dataset.w=h.width;b.dataset.h=h.height;
   $('canvas').append(b);
  }
  scale=Math.min(1,$('viewport').clientWidth/d.width);resize();
  $('viewport').scrollTop=0;$('viewport').scrollLeft=0;$('drawing').scrollIntoView({block:'start'});
+}
+function diagramReference(h){
+ if(Number(h.flags)!==2)return null;
+ const code=String(h.pnc).trim().match(/^(\d{2})[ -]+(\d{3})$/);
+ return code?{main:code[1],sub:code[2]}:null;
+}
+function referenceTargets(reference){return catalogueDiagrams.filter(d=>d.main_group===reference.main&&d.sub_group===reference.sub);}
+function openReference(reference){
+ const targets=referenceTargets(reference),title='Reference '+reference.main+'-'+reference.sub;
+ const open=d=>{browseCategory=categoryOf(d);browseSubgroup=d.main_group+'|'+d.sub_group;$('parts').close();draw(d);};
+ if(targets.length===1){open(targets[0]);return;}
+ $('partContent').replaceChildren(text('h2',title));
+ if(!targets.length)$('partContent').append(text('p','No applicable drawing for this reference is available in the imported catalogue.'));
+ else{ $('partContent').append(text('p','Choose a drawing for '+subgroupLabel(targets[0])+'.'));
+  for(const d of targets){const b=text('button',d.illustration_id);b.className='result';b.onclick=()=>open(d);$('partContent').append(b);}
+ }
+ $('parts').showModal();
 }
 function resize(){if(!active)return;$('canvas').style.width=active.width*scale+'px';$('canvas').style.height='auto';for(const b of $('canvas').querySelectorAll('button')){b.style.left=b.dataset.x*scale+'px';b.style.top=b.dataset.y*scale+'px';b.style.width=b.dataset.w*scale+'px';b.style.height=b.dataset.h*scale+'px'}$('zoomlevel').textContent=Math.round(scale*100)+'%'}
 $('zoomin').onclick=()=>{scale=Math.min(4,scale*1.3);resize()};$('zoomout').onclick=()=>{scale=Math.max(.2,scale/1.3);resize()};$('back').onclick=()=>{select(v,true);$('drawing').hidden=true;$('workspace').hidden=false};let pinch=null;const distance=ts=>Math.hypot(ts[0].clientX-ts[1].clientX,ts[0].clientY-ts[1].clientY);$('viewport').addEventListener('touchstart',e=>{if(e.touches.length===2)pinch={distance:distance(e.touches),scale}},{passive:true});$('viewport').addEventListener('touchmove',e=>{if(e.touches.length===2&&pinch){e.preventDefault();scale=Math.max(.2,Math.min(4,pinch.scale*distance(e.touches)/pinch.distance));resize()}},{passive:false});$('viewport').addEventListener('touchend',()=>pinch=null);
