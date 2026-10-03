@@ -1,4 +1,4 @@
-import {createResolver} from './resolver.js?v=21';
+import {createResolver} from './resolver.js?v=22';
 const $=id=>document.getElementById(id);let r,v,db,scale=1,active,fullImageURL,diagramHistory=[],activeSeries=[],pageIndex=0,savedVehicles=[],groupNames={};const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=value;return e};
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('asa-pocket',1);req.onupgradeneeded=()=>req.result.createObjectStore('catalogue');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 function readPack(key='active'){return new Promise((resolve,reject)=>{const req=db.transaction('catalogue').objectStore('catalogue').get(key);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
@@ -85,8 +85,8 @@ document.addEventListener('touchstart',e=>{
  const inDrawing=!$('drawing').hidden;
  const inImage=inDrawing&&viewport.contains(e.target);
  const fit=inDrawing&&viewport.scrollLeft===0&&active.width*scale<=viewport.clientWidth+2;
- // Image swipes turn bounded pages at fit size; a left-side back gesture also works outside the image.
- if((inImage&&fit)||(touch.clientX<=window.innerWidth/2&&(!inImage||fit)))
+ // Fit-size image swipes turn bounded pages; right swipes elsewhere go back.
+ if(!inImage||fit)
   pageSwipe={x:touch.clientX,y:touch.clientY,time:e.timeStamp,inImage,inDrawing};
 },{passive:true});
 document.addEventListener('touchmove',e=>{if(e.touches.length!==1)pageSwipe=null;},{passive:true});
@@ -94,10 +94,10 @@ document.addEventListener('touchend',e=>{
  const start=pageSwipe;pageSwipe=null;if(!start||e.touches.length||e.changedTouches.length!==1)return;
  const touch=e.changedTouches[0],direction=swipeDirection(start,{x:touch.clientX,y:touch.clientY,time:e.timeStamp});
  if(!direction)return;
- if(start.inImage&&activeSeries.length>1){
+ if(start.inDrawing&&activeSeries.length>1&&(start.inImage||direction===-1)){
   if(direction===1||pageIndex>0){cycleDiagram(direction);return;}
  }
- if(direction===-1&&start.x<=window.innerWidth/2){
+ if(direction===-1){
   if(start.inDrawing)goBack();else document.getElementById('browseBack')?.click();
  }
 },{passive:true});
@@ -224,6 +224,8 @@ if('serviceWorker' in navigator && window.isSecureContext){
   $('offlineStatus').textContent='App saved for offline use. Import your catalogue here, then test in airplane mode.';
  }catch(e){$('offlineStatus').textContent='Offline setup failed. Reopen with internet access before testing offline.';}
 }else{$('offlineStatus').textContent='Offline installation needs a secure web address.';}
+
+
 
 
 
