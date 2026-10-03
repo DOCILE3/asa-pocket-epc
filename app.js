@@ -1,4 +1,4 @@
-import {createResolver} from './resolver.js?v=20';
+import {createResolver} from './resolver.js?v=21';
 const $=id=>document.getElementById(id);let r,v,db,scale=1,active,fullImageURL,diagramHistory=[],activeSeries=[],pageIndex=0,savedVehicles=[],groupNames={};const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=value;return e};
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('asa-pocket',1);req.onupgradeneeded=()=>req.result.createObjectStore('catalogue');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 function readPack(key='active'){return new Promise((resolve,reject)=>{const req=db.transaction('catalogue').objectStore('catalogue').get(key);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
@@ -17,10 +17,10 @@ function select(item,preserveNavigation=false){const detailsWasOpen=preserveNavi
 function draw(d,series=null,index=0,position=null){
  const restorePosition=()=>{if(!position)return;$('viewport').scrollTop=position.top;$('viewport').scrollLeft=position.left;window.scrollTo(position.x,position.y);};
  if(series){activeSeries=series;pageIndex=index;}
- $('pageNavigation').hidden=activeSeries.length<2;$('pageCount').textContent='Diagram '+(pageIndex+1)+' of '+activeSeries.length;
+ $('previousPage').disabled=pageIndex===0;$('nextPage').disabled=pageIndex>=activeSeries.length-1;$('pageNavigation').hidden=activeSeries.length<2;$('pageCount').textContent='Diagram '+(pageIndex+1)+' of '+activeSeries.length;
  $('referenceNotice').hidden=!d.referenceOnly;
  $('referenceNotice').textContent=d.referenceOnly?'Reference drawing outside the current browse selection. Part results remain filtered to your chassis.':'';
- active=d;$('previousImage').hidden=!diagramHistory.length;$('drawing').hidden=false;$('workspace').hidden=true;
+ active=d;$('previousImage').hidden=true;$('back').textContent=diagramHistory.length?'Back to previous diagram':'Back to diagrams';$('drawing').hidden=false;$('workspace').hidden=true;
  $('drawingTitle').textContent=d.illustration_id;$('canvas').replaceChildren();
  $('directImage').hidden=true;
  if(!r.pack.images[d.illustration_id]){
@@ -69,7 +69,7 @@ function previousImage(){
 }
 function cycleDiagram(step){
  if(activeSeries.length<2)return;
- const index=(pageIndex+step+activeSeries.length)%activeSeries.length;
+ const index=pageIndex+step;if(index<0||index>=activeSeries.length)return;
  const position={x:window.scrollX,y:window.scrollY,top:$('viewport').scrollTop,left:$('viewport').scrollLeft};
  draw(activeSeries[index],activeSeries,index,position);
 }
@@ -79,22 +79,36 @@ function swipeDirection(start,end){
  const dx=end.x-start.x;return Math.abs(dx)>=80&&Math.abs(end.y-start.y)<40&&end.time-start.time<800?(dx<0?1:-1):0;
 }
 let pageSwipe=null;
-$('viewport').addEventListener('touchstart',e=>{
- pageSwipe=null;if(e.touches.length!==1||!active)return;
- const viewport=$('viewport'),touch=e.touches[0],edge=touch.clientX-viewport.getBoundingClientRect().left;
- // Fit-size swipes turn pages; zoomed diagrams retain normal panning.
- if((activeSeries.length>1||(diagramHistory.length&&edge>=0&&edge<=40))&&viewport.scrollLeft===0&&active.width*scale<=viewport.clientWidth+2)
-  pageSwipe={x:touch.clientX,y:touch.clientY,time:e.timeStamp};
+document.addEventListener('touchstart',e=>{
+ pageSwipe=null;if(e.touches.length!==1||$('parts').open||$('saveVehicleDialog').open)return;
+ const touch=e.touches[0],viewport=$('viewport');
+ const inDrawing=!$('drawing').hidden;
+ const inImage=inDrawing&&viewport.contains(e.target);
+ const fit=inDrawing&&viewport.scrollLeft===0&&active.width*scale<=viewport.clientWidth+2;
+ // Image swipes turn bounded pages at fit size; a left-side back gesture also works outside the image.
+ if((inImage&&fit)||(touch.clientX<=window.innerWidth/2&&(!inImage||fit)))
+  pageSwipe={x:touch.clientX,y:touch.clientY,time:e.timeStamp,inImage,inDrawing};
 },{passive:true});
-$('viewport').addEventListener('touchmove',e=>{if(e.touches.length!==1)pageSwipe=null;},{passive:true});
-$('viewport').addEventListener('touchend',e=>{
+document.addEventListener('touchmove',e=>{if(e.touches.length!==1)pageSwipe=null;},{passive:true});
+document.addEventListener('touchend',e=>{
  const start=pageSwipe;pageSwipe=null;if(!start||e.touches.length||e.changedTouches.length!==1)return;
  const touch=e.changedTouches[0],direction=swipeDirection(start,{x:touch.clientX,y:touch.clientY,time:e.timeStamp});
- if(activeSeries.length>1&&direction)cycleDiagram(direction);else if(direction===-1)previousImage();
+ if(!direction)return;
+ if(start.inImage&&activeSeries.length>1){
+  if(direction===1||pageIndex>0){cycleDiagram(direction);return;}
+ }
+ if(direction===-1&&start.x<=window.innerWidth/2){
+  if(start.inDrawing)goBack();else document.getElementById('browseBack')?.click();
+ }
 },{passive:true});
-$('viewport').addEventListener('touchcancel',()=>{pageSwipe=null;},{passive:true});
+document.addEventListener('touchcancel',()=>{pageSwipe=null;},{passive:true});
+function goBack(){
+ if(diagramHistory.length){previousImage();return;}
+ browseCategory=browseReturnCategory??browseCategory;browseSubgroup=null;select(v,true);
+ $('drawing').hidden=true;$('workspace').hidden=false;restoreBrowsePosition(browseCategory);
+}
 function resize(){if(!active)return;$('canvas').style.width=active.width*scale+'px';$('canvas').style.height='auto';for(const b of $('canvas').querySelectorAll('button')){b.style.left=b.dataset.x*scale+'px';b.style.top=b.dataset.y*scale+'px';b.style.width=b.dataset.w*scale+'px';b.style.height=b.dataset.h*scale+'px'}$('zoomlevel').textContent=Math.round(scale*100)+'%'}
-$('zoomin').onclick=()=>{scale=Math.min(4,scale*1.3);resize()};$('zoomout').onclick=()=>{scale=Math.max(.2,scale/1.3);resize()};$('back').onclick=()=>{browseCategory=browseReturnCategory??browseCategory;browseSubgroup=null;select(v,true);$('drawing').hidden=true;$('workspace').hidden=false;restoreBrowsePosition(browseCategory);};let pinch=null;const distance=ts=>Math.hypot(ts[0].clientX-ts[1].clientX,ts[0].clientY-ts[1].clientY);$('viewport').addEventListener('touchstart',e=>{if(e.touches.length===2)pinch={distance:distance(e.touches),scale}},{passive:true});$('viewport').addEventListener('touchmove',e=>{if(e.touches.length===2&&pinch){e.preventDefault();scale=Math.max(.2,Math.min(4,pinch.scale*distance(e.touches)/pinch.distance));resize()}},{passive:false});$('viewport').addEventListener('touchend',()=>pinch=null);
+$('zoomin').onclick=()=>{scale=Math.min(4,scale*1.3);resize()};$('zoomout').onclick=()=>{scale=Math.max(.2,scale/1.3);resize()};$('back').onclick=goBack;let pinch=null;const distance=ts=>Math.hypot(ts[0].clientX-ts[1].clientX,ts[0].clientY-ts[1].clientY);$('viewport').addEventListener('touchstart',e=>{if(e.touches.length===2)pinch={distance:distance(e.touches),scale}},{passive:true});$('viewport').addEventListener('touchmove',e=>{if(e.touches.length===2&&pinch){e.preventDefault();scale=Math.max(.2,Math.min(4,pinch.scale*distance(e.touches)/pinch.distance));resize()}},{passive:false});$('viewport').addEventListener('touchend',()=>pinch=null);
 function lookup(pnc){const result=r.lookup(v,pnc);$('partContent').replaceChildren(text('h2','PNC '+pnc),text('p',`${v.model}-${v.serial_number} · ${v.classification} · ${v.production_period??'Period unknown'}`));if(!result.parts.length)$('partContent').append(text('p',result.status==='notImported'?'Application data not imported. This does not establish that the part was not fitted.':'No applicable part for this chassis in the imported applications.'));for(const p of result.parts){const a=document.createElement('article');a.className='card';a.append(text('div',p.part_number),text('p',p.exact?'Matches decoded chassis conditions':'Candidate — requires verification'),text('p',p.qualifier?(r.pack.qualifierDescriptions[p.qualifier]||p.qualifier):'Generic application'),text('p',`Production ${p.start_period??'open'}–${p.end_period??'open'}`));a.firstChild.className='partno';$('partContent').append(a)}if(result.parts.length>1)$('partContent').append(text('p','Multiple part numbers remain. Replacement order has not been established.'));$('parts').showModal()}
 $('closeParts').onclick=()=>$('parts').close();
 
@@ -186,7 +200,7 @@ function renderCatalogueBrowser(){
   for(const name of categories){const rows=catalogueDiagrams.filter(d=>categoryOf(d)===name),count=new Set(rows.map(d=>d.main_group+'|'+d.sub_group)).size;const button=text('button',name);button.append(text('small',count+' subgroups'));button.onclick=()=>{saveBrowsePosition(null);browseCategory=name;browseSubgroup=null;renderCatalogueBrowser();restoreBrowsePosition(name);};grid.append(button);}
   container.append(grid);return;
  }
- const back=text('button',browseSubgroup?'Back to '+browseCategory:'Back to categories');back.onclick=()=>{saveBrowsePosition(browseCategory);if(browseSubgroup)browseSubgroup=null;else browseCategory=null;renderCatalogueBrowser();restoreBrowsePosition(browseCategory);};container.append(back);
+ const back=text('button',browseSubgroup?'Back to '+browseCategory:'Back to categories');back.onclick=()=>{saveBrowsePosition(browseCategory);if(browseSubgroup)browseSubgroup=null;else browseCategory=null;renderCatalogueBrowser();restoreBrowsePosition(browseCategory);};back.id='browseBack';container.append(back);
  const rows=catalogueDiagrams.filter(d=>categoryOf(d)===browseCategory);
  if(!browseSubgroup){
   container.append(text('h2',browseCategory));const grouped=new Map;
