@@ -1,5 +1,5 @@
-const VERSION='asa-pocket-shell-0.6.27';
-const FILES=['./','./index.html','./style.css?v=36','./app.js?v=36','./resolver.js','./resolver.js?v=36','./manifest.webmanifest','./icon.svg','./icon-180.png','./icon-192.png','./icon-512.png'];
+const VERSION='asa-pocket-shell-0.6.28';
+const FILES=['./','./index.html','./style.css?v=37','./app.js?v=37','./resolver.js','./resolver.js?v=37','./manifest.webmanifest','./icon.svg','./icon-180.png','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(VERSION).then(cache=>cache.addAll(FILES)));
  self.skipWaiting();
