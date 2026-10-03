@@ -8,3 +8,5 @@
 #partSearch{margin-top:2rem;padding-top:1rem;border-top:1px solid #34414a}#partSearchResults:empty{display:none}#partSearchResults small{display:block;color:#adb8c2}#partSearchResults h3{margin-top:0}#partSearchStatus{overflow-wrap:anywhere}
 
 .categoryGrid,.subgroupGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.categoryGrid button,.subgroupGrid button{text-align:left;overflow-wrap:anywhere;min-height:74px}.categoryGrid small,.subgroupGrid small{display:block;margin-top:8px;color:#b5c2cc;font-size:.8rem}.categoryGrid button{font-weight:700}#groups{margin-top:24px}summary{cursor:pointer;padding:8px 0 14px;color:#b9dfff}details .meta{margin-top:10px}@media(min-width:650px){.subgroupGrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+#savedVehicleSelect{flex:1;min-width:0;min-height:46px;padding:10px 12px;font:inherit;background:#1b222a;color:#fff;border:1px solid #57636f;border-radius:10px}#saveCurrentVehicle{margin-bottom:12px;font-size:.9rem}#vehicle details{margin-bottom:12px}

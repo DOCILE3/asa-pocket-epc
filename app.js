@@ -1,4 +1,4 @@
-import {createResolver} from './resolver.js?v=22';
+import {createResolver} from './resolver.js?v=23';
 const $=id=>document.getElementById(id);let r,v,db,scale=1,active,fullImageURL,diagramHistory=[],activeSeries=[],pageIndex=0,savedVehicles=[],groupNames={};const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=value;return e};
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('asa-pocket',1);req.onupgradeneeded=()=>req.result.createObjectStore('catalogue');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 function readPack(key='active'){return new Promise((resolve,reject)=>{const req=db.transaction('catalogue').objectStore('catalogue').get(key);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
@@ -12,7 +12,7 @@ async function importPack(blob){$('importStatus').textContent='Reading and check
 $('namesfile').onchange=e=>{if(e.target.files[0])importPack(e.target.files[0])};$('file').onchange=e=>{if(e.target.files[0])importPack(e.target.files[0])};$('settings').onclick=()=>{$('setup').hidden=false;$('workspace').hidden=true;$('drawing').hidden=true;$('importStatus').textContent=r?'Choose a new pack to replace this device’s catalogue.':''};
 if(['localhost','127.0.0.1'].includes(location.hostname)){$('testpack').hidden=false;$('testpack').onclick=async()=>{try{await importPack(await(await fetch('local-test-pack.asapack.gz')).blob())}catch(e){$('importStatus').textContent=e.message}}}
 $('searchForm').onsubmit=e=>{e.preventDefault();$('results').replaceChildren();const found=r.search($('query').value);if(!found.length)$('results').append(text('p','No matching chassis in this catalogue.'));for(const item of found){const b=text('button',`${item.model}-${item.serial_number} · ${item.classification}`);b.className='result';b.onclick=()=>select(item);$('results').append(b)}if(found.length===1)select(found[0])};
-function select(item,preserveNavigation=false){const detailsWasOpen=preserveNavigation&&document.getElementById('vehicle').querySelector('details')?.open;diagramHistory=[];activeSeries=[];pageIndex=0;if(!preserveNavigation){browsePositions.clear();browseReturnCategory=null;browseCategory=null;browseSubgroup=null;}$('partSearchResults').replaceChildren();$('partSearchStatus').textContent='';$('morePartResults').hidden=true;releaseImages();v=item;$('results').replaceChildren();$('drawing').hidden=true;$('vehicle').replaceChildren();$('groups').replaceChildren();const card=document.createElement('article');card.className='card';card.append(text('h2',`${v.model}-${v.serial_number}`));const meta=document.createElement('div');meta.className='meta';for(const [k,value]of [['Model',v.type||v.model],['Classification',v.classification],['Production',v.production_period??'Unknown'],['OPC',v.opc],['Exterior code',v.exterior||'Not decoded'],['Interior code',v.interior||'Not decoded']]){const f=document.createElement('div');f.append(text('small',k),text('span',value));meta.append(f)}const details=document.createElement('details');details.open=!!detailsWasOpen;details.append(text('summary','Vehicle details'),meta);card.append(details);const o=text('p',r.unknown(v)?'Factory options require verification. Option-dependent parts are candidates.':'Factory options: '+([...r.options(v)].join(' · ')||'No Option IDs in matched package'));o.className=r.unknown(v)?'warning':'options';details.append(o);const saveButton=text('button',savedVehicles.some(x=>x.chassis===chassisKey(v))?'Edit saved vehicle':'Save vehicle');saveButton.id='saveCurrentVehicle';saveButton.onclick=openSaveVehicle;card.append(saveButton);$('vehicle').append(card);const seenIllustrations=new Set;catalogueDiagrams=r.diagrams(v).filter(d=>{if(seenIllustrations.has(d.illustration_id))return false;seenIllustrations.add(d.illustration_id);return true;}).map(d=>{const code=d.illustration_id.match(/^\d(\d{2})_(\d{3})/);return code?{...d,main_group:code[1],sub_group:code[2]}:d;});renderCatalogueBrowser();}
+function select(item,preserveNavigation=false){const detailsWasOpen=preserveNavigation&&document.getElementById('vehicle').querySelector('details')?.open;diagramHistory=[];activeSeries=[];pageIndex=0;if(!preserveNavigation){browsePositions.clear();browseReturnCategory=null;browseCategory=null;browseSubgroup=null;}$('partSearchResults').replaceChildren();$('partSearchStatus').textContent='';$('morePartResults').hidden=true;releaseImages();v=item;$('results').replaceChildren();$('drawing').hidden=true;$('vehicle').replaceChildren();$('groups').replaceChildren();const card=document.createElement('article');card.className='card';card.append(text('h2',`${v.model}-${v.serial_number}`));const meta=document.createElement('div');meta.className='meta';for(const [k,value]of [['Model',v.type||v.model],['Classification',v.classification],['Production',v.production_period??'Unknown'],['OPC',v.opc],['Exterior code',v.exterior||'Not decoded'],['Interior code',v.interior||'Not decoded']]){const f=document.createElement('div');f.append(text('small',k),text('span',value));meta.append(f)}const details=document.createElement('details');details.open=!!detailsWasOpen;const summary=text('summary','Vehicle details');summary.hidden=true;details.append(summary,meta);card.append(details);const o=text('p',r.unknown(v)?'Factory options require verification. Option-dependent parts are candidates.':'Factory options: '+([...r.options(v)].join(' · ')||'No Option IDs in matched package'));o.className=r.unknown(v)?'warning':'options';details.append(o);const saveButton=text('button',savedVehicles.some(x=>x.chassis===chassisKey(v))?'Edit saved vehicle':'Save vehicle');saveButton.id='saveCurrentVehicle';saveButton.onclick=openSaveVehicle;card.insertBefore(saveButton,details);const detailsButton=text('button','Vehicle details');detailsButton.setAttribute('aria-expanded',String(details.open));detailsButton.onclick=()=>{details.open=!details.open;detailsButton.setAttribute('aria-expanded',String(details.open));};card.append(detailsButton);$('vehicle').append(card);const seenIllustrations=new Set;catalogueDiagrams=r.diagrams(v).filter(d=>{if(seenIllustrations.has(d.illustration_id))return false;seenIllustrations.add(d.illustration_id);return true;}).map(d=>{const code=d.illustration_id.match(/^\d(\d{2})_(\d{3})/);return code?{...d,main_group:code[1],sub_group:code[2]}:d;});renderCatalogueBrowser();}
 
 function draw(d,series=null,index=0,position=null){
  const restorePosition=()=>{if(!position)return;$('viewport').scrollTop=position.top;$('viewport').scrollLeft=position.left;window.scrollTo(position.x,position.y);};
@@ -115,40 +115,36 @@ $('closeParts').onclick=()=>$('parts').close();
 const chassisKey=vehicle=>vehicle.model+'-'+vehicle.serial_number;
 function renderSavedVehicles(){
  const list=$('savedVehicleList');list.replaceChildren();
- if(!savedVehicles.length){list.append(text('p','Search for a chassis, then tap Save vehicle to add your car here.'));return;}
- for(const entry of [...savedVehicles].sort((a,b)=>a.nickname.localeCompare(b.nickname))){
-  const row=document.createElement('div');row.className='savedRow';
-  const open=document.createElement('button');open.className='savedOpen';
-  open.append(text('strong',entry.nickname||entry.chassis),text('small',entry.chassis));
-  open.setAttribute('aria-label','Open '+(entry.nickname||entry.chassis));
-  open.onclick=()=>{
-   const matches=r.search(entry.chassis).filter(vehicle=>chassisKey(vehicle)===entry.chassis);
-   if(matches.length!==1){$('savedVehicleStatus').textContent=entry.chassis+' cannot be identified uniquely in this imported catalogue.';return;}
-   $('savedVehicleStatus').textContent='';$('query').value=entry.chassis;select(matches[0]);$('vehicle').scrollIntoView({block:'start'});
-  };
-  const remove=text('button','Remove');remove.className='savedRemove';
-  remove.setAttribute('aria-label','Remove '+(entry.nickname||entry.chassis));
-  remove.onclick=async()=>{
-   const next=savedVehicles.filter(item=>item.chassis!==entry.chassis);remove.disabled=true;
-   try{await storePack(next,'savedVehicles');savedVehicles=next;renderSavedVehicles();
-    if(v&&chassisKey(v)===entry.chassis)$('saveCurrentVehicle').textContent='Save vehicle';
-    $('savedVehicleStatus').textContent='Removed from My vehicles.';
-   }catch(e){remove.disabled=false;$('savedVehicleStatus').textContent='Could not save the change. Your saved vehicles are unchanged.';}
-  };
-  row.append(open,remove);list.append(row);
- }
+ const row=document.createElement('div');row.className='savedRow';
+ const dropdown=document.createElement('select');dropdown.id='savedVehicleSelect';dropdown.setAttribute('aria-label','Saved vehicles');
+ const placeholder=text('option',savedVehicles.length?'Choose a saved vehicle ('+savedVehicles.length+'/8)':'No saved vehicles');placeholder.value='';dropdown.append(placeholder);
+ for(const entry of [...savedVehicles].sort((a,b)=>a.nickname.localeCompare(b.nickname))){const option=text('option',(entry.nickname||entry.chassis)+' · '+entry.chassis);option.value=entry.chassis;dropdown.append(option);}
+ const remove=text('button','Remove');remove.disabled=true;remove.className='savedRemove';remove.setAttribute('aria-label','Remove selected saved vehicle');
+ dropdown.onchange=()=>{
+  const key=dropdown.value;remove.disabled=!key;if(!key)return;
+  const matches=r.search(key).filter(vehicle=>chassisKey(vehicle)===key);
+  if(matches.length!==1){$('savedVehicleStatus').textContent=key+' cannot be identified uniquely in this imported catalogue.';return;}
+  $('savedVehicleStatus').textContent='';$('query').value=key;select(matches[0]);$('vehicle').scrollIntoView({block:'start'});
+ };
+ remove.onclick=async()=>{
+  const key=dropdown.value;if(!key)return;const next=savedVehicles.filter(item=>item.chassis!==key);remove.disabled=true;
+  try{await storePack(next,'savedVehicles');savedVehicles=next;renderSavedVehicles();if(v&&chassisKey(v)===key)$('saveCurrentVehicle').textContent='Save vehicle';$('savedVehicleStatus').textContent='Removed from My vehicles.';}
+  catch(e){remove.disabled=false;$('savedVehicleStatus').textContent='Could not save the change. Your saved vehicles are unchanged.';}
+ };
+ row.append(dropdown,remove);list.append(row);
+ if(savedVehicles.length>8)$('savedVehicleStatus').textContent='Remove vehicles until eight remain before saving another vehicle.';
 }
 function openSaveVehicle(){
  const key=chassisKey(v),existing=savedVehicles.find(entry=>entry.chassis===key);
  $('saveVehicleHeading').textContent=existing?'Edit saved vehicle':'Save vehicle';
  $('saveVehicleChassis').textContent=key;
  $('vehicleNickname').value=existing?.nickname||key;
- $('saveVehicleError').textContent='';$('saveVehicleDialog').showModal();$('vehicleNickname').focus();
+ $('saveVehicleError').textContent=!existing&&savedVehicles.length>=8?'You can save up to 8 vehicles. Remove one from My vehicles first.':'';$('confirmSaveVehicle').disabled=!existing&&savedVehicles.length>=8;$('saveVehicleDialog').showModal();$('vehicleNickname').focus();
 }
 $('cancelSaveVehicle').onclick=()=>$('saveVehicleDialog').close();
 $('saveVehicleForm').onsubmit=async event=>{
  event.preventDefault();const key=chassisKey(v),nickname=$('vehicleNickname').value.trim().slice(0,80)||key;
- const next=[...savedVehicles.filter(entry=>entry.chassis!==key),{chassis:key,nickname}];
+ if(!savedVehicles.some(entry=>entry.chassis===key)&&savedVehicles.length>=8){$('saveVehicleError').textContent='You can save up to 8 vehicles. Remove one from My vehicles first.';return;}const next=[...savedVehicles.filter(entry=>entry.chassis!==key),{chassis:key,nickname}];
  $('confirmSaveVehicle').disabled=true;
  try{await storePack(next,'savedVehicles');savedVehicles=next;renderSavedVehicles();
   $('saveCurrentVehicle').textContent='Edit saved vehicle';$('saveVehicleDialog').close();
