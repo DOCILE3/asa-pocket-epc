@@ -68,3 +68,49 @@ button:focus-visible,input:focus-visible{outline-color:var(--asa-ralliart-orange
 :root[data-theme="light"] .settingsDanger{color:#a50012!important;border-color:#a50012!important}
 :root[data-theme="light"] #confirmSaveVehicle,:root[data-theme="light"] .settingsPrimary{background:var(--asa-ralliart-red);color:#fff}
 .settingsInfo{overflow-wrap:anywhere}#removeCatalogueDialog{max-width:520px}#removeCatalogueDialog .saveActions{display:flex;gap:10px;justify-content:flex-end}#removeCatalogueDialog .saveActions button{max-width:50%}
+
+/* Match the compact, card-based appearance chooser from the approved mockup. */
+body.settings-open header{height:66px;padding:14px max(20px,env(safe-area-inset-right));gap:10px}
+body.settings-open header h1{font-size:1rem;white-space:nowrap}
+body.settings-open header p{display:none}
+body.settings-open header .mark{font-size:1.35rem;padding-left:7px}
+body.settings-open main{padding-top:20px}
+.settingsHeading{display:block;margin-bottom:20px}
+.settingsHeading .backHome{display:block;min-height:32px;padding:0;margin:0 0 10px;border:0;border-radius:0;background:transparent;color:#b9dfff;font-size:.9rem;text-align:left}
+.settingsHeading .backHome:hover{background:transparent;text-decoration:underline}
+.settingsHeading h2{font-size:1.65rem}
+.themeChoices{display:grid;gap:10px}
+#settingsPage .themeChoice{display:flex;align-items:center;gap:14px;width:100%;min-height:74px;padding:10px 14px;text-align:left;background:#1b222a;border:1px solid #35424e;border-radius:14px}
+#settingsPage .themeChoice:hover{background:#202a33}
+#settingsPage .themeChoice[aria-pressed="true"]{border-color:var(--asa-ralliart-red);box-shadow:inset 4px 0 var(--asa-ralliart-red)}
+.themeSwatch{flex:0 0 52px;width:52px;height:50px;border-radius:10px}
+.ralliartSwatch{background:linear-gradient(133deg,#15191e 0 45%,#e60012 45% 68%,#f28c00 68%)}
+.classicSwatch{background:linear-gradient(135deg,#15191e,#49525b)}
+.themeChoiceCopy{flex:1;min-width:0}
+.themeChoiceCopy strong,.themeChoiceCopy small{display:block}
+.themeChoiceCopy small{margin-top:3px;color:#a9b4c0;font-size:.88rem}
+.themeChoiceMark{width:22px;height:22px;flex:0 0 22px;border:2px solid #a9b4c0;border-radius:50%}
+.themeChoice[aria-pressed="true"] .themeChoiceMark{border-color:var(--asa-ralliart-red);background:radial-gradient(circle,var(--asa-ralliart-red) 0 5px,transparent 5.5px)}
+.appearanceModes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#settingsPage .appearanceModes button{min-width:0;min-height:54px;background:#1b222a;border:1px solid #35424e;color:#b9c3ce}
+#settingsPage .appearanceModes button[aria-pressed="true"]{background:#35191e;border-color:var(--asa-ralliart-red);color:#fff;font-weight:650}
+:root[data-theme="light"] #settingsPage .themeChoice,:root[data-theme="light"] #settingsPage .appearanceModes button{background:var(--asa-light-surface);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] #settingsPage .themeChoice[aria-pressed="true"],:root[data-theme="light"] #settingsPage .appearanceModes button[aria-pressed="true"]{background:#fff1f2;border-color:var(--asa-ralliart-red)}
+:root[data-theme="light"] .themeChoiceCopy small{color:var(--asa-light-muted)}
+:root[data-theme="light"] .settingsHeading .backHome{background:transparent;color:var(--asa-light-link)}
+:root[data-theme="light"] .settingsHeading .backHome:hover{background:transparent}
+:root[data-theme="light"] #settingsPage .appearanceModes button{color:var(--asa-light-text)}
+:root[data-theme="light"] #settingsPage .appearanceModes button[aria-pressed="true"]{color:#3b1116}
+:root[data-color-theme="classic"]{--asa-ralliart-red:#6f7b86;--asa-ralliart-orange:#9aa4ad}
+:root[data-color-theme="classic"] header::after{display:none}
+:root[data-color-theme="classic"] .mark{border-left-color:#6f7b86}
+:root[data-color-theme="classic"] .import,:root[data-color-theme="classic"] .search button,:root[data-color-theme="classic"] #confirmSaveVehicle,:root[data-color-theme="classic"] .resetButton,:root[data-color-theme="classic"] .settingsPrimary{background:#45505a;border-color:#45505a}
+:root[data-color-theme="classic"] .import:hover,:root[data-color-theme="classic"] .search button:hover,:root[data-color-theme="classic"] #confirmSaveVehicle:hover,:root[data-color-theme="classic"] .resetButton:hover,:root[data-color-theme="classic"] .settingsPrimary:hover{background:#596570}
+:root[data-color-theme="classic"] .warning,:root[data-color-theme="classic"] #saveVehicleError,:root[data-color-theme="classic"] summary{color:#aab4bd}
+:root[data-color-theme="classic"] #directImage{color:#b9c3ce}
+:root[data-color-theme="classic"] .settingsDanger{border-color:#6f7b86!important;color:#b9c3ce!important}
+:root[data-color-theme="classic"] #settingsPage .appearanceModes button[aria-pressed="true"]{background:#313a42}
+:root[data-color-theme="classic"] #settingsPage .themeChoice[aria-pressed="true"],:root[data-color-theme="classic"] #settingsPage .appearanceModes button[aria-pressed="true"]{border-color:#6f7b86}
+:root[data-color-theme="classic"] #settingsPage .themeChoice[aria-pressed="true"] .themeChoiceMark{border-color:#6f7b86;background:radial-gradient(circle,#6f7b86 0 5px,transparent 5.5px)}
+:root[data-theme="light"][data-color-theme="classic"] #settingsPage .appearanceModes button[aria-pressed="true"]{background:#e9edf1;color:var(--asa-light-text)}
+:root[data-theme="light"][data-color-theme="classic"] #settingsPage .themeChoice[aria-pressed="true"],:root[data-theme="light"][data-color-theme="classic"] #settingsPage .appearanceModes button[aria-pressed="true"]{border-color:#6f7b86}
