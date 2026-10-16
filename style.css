@@ -16,3 +16,15 @@
 .resetButton{background:#ce363b;border-color:#ce363b;color:#fff}.resetButton:hover{background:#aa292e}.chassisTitleRow{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:12px}.chassisTitleRow h2{margin:0!important}.savedDropdown{position:relative}.savedDropdown>summary{list-style:none;position:relative;padding:12px 42px 12px 14px;background:#1b222a;border:1px solid #57636f;border-radius:10px;cursor:pointer;min-height:46px}.savedDropdown>summary::-webkit-details-marker{display:none}.savedDropdown>summary::after{content:"▾";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#b9c3ce}.savedDropdown[open]>summary::after{content:"▴"}.savedMenu{position:absolute;z-index:35;top:calc(100% + 6px);left:0;right:0;max-height:min(42vh,280px);overflow-y:auto;overscroll-behavior:contain;padding:6px;background:#202a33;border:1px solid #536171;border-radius:12px;box-shadow:0 8px 22px #0009}.savedMenu .savedRow{display:flex;gap:8px;align-items:stretch;margin:0;padding:4px}.savedMenu .savedRow+.savedRow{border-top:1px solid #3a4651}.savedMenu .savedOpen{flex:1;text-align:left;min-width:0;background:transparent;border:0;border-radius:7px}.savedMenu .savedOpen:hover{background:#354553}.savedMenu .savedRemove{min-width:84px;align-self:center}
 
 .partApplications>summary{display:list-item;width:fit-content;cursor:pointer;border:1px solid #495560;background:#25303a;color:#fff;border-radius:10px;min-height:46px;padding:12px 16px;margin-top:16px}.partApplicationScroll{max-height:55vh;overflow-y:auto;overscroll-behavior:contain;margin-top:12px;padding-right:6px}.partApplicationScroll .card{background:#15191e}.partApplicationScroll h3{font-size:1rem}
+/* Ralliart-inspired charcoal, red and orange theme */
+:root{--asa-ralliart-red:#e60012;--asa-ralliart-orange:#f28c00}
+header{position:relative;isolation:isolate;overflow:hidden}
+header::after{content:"";position:absolute;z-index:-1;pointer-events:none;top:0;right:-18px;width:130px;height:100%;background:linear-gradient(133deg,transparent 0 33%,var(--asa-ralliart-red) 33% 49.5%,var(--asa-ralliart-orange) 49.5% 64%,transparent 64%)}
+header .mark,header>div,header .settingsButton{position:relative;z-index:1}
+.mark{border-left-color:var(--asa-ralliart-red)}
+.import,.search button,#confirmSaveVehicle,.resetButton{background:var(--asa-ralliart-red)}
+.import:hover,.search button:hover,#confirmSaveVehicle:hover,.resetButton:hover{background:#b8000e}
+.resetButton{border-color:var(--asa-ralliart-red)}
+button:focus-visible,input:focus-visible{outline-color:var(--asa-ralliart-orange)}
+.warning,#saveVehicleError,summary{color:var(--asa-ralliart-orange)}
+#directImage{color:#ff6973}
