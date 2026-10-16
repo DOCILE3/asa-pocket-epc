@@ -16,6 +16,7 @@
 .resetButton{background:#ce363b;border-color:#ce363b;color:#fff}.resetButton:hover{background:#aa292e}.chassisTitleRow{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:12px}.chassisTitleRow h2{margin:0!important}.savedDropdown{position:relative}.savedDropdown>summary{list-style:none;position:relative;padding:12px 42px 12px 14px;background:#1b222a;border:1px solid #57636f;border-radius:10px;cursor:pointer;min-height:46px}.savedDropdown>summary::-webkit-details-marker{display:none}.savedDropdown>summary::after{content:"▾";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#b9c3ce}.savedDropdown[open]>summary::after{content:"▴"}.savedMenu{position:absolute;z-index:35;top:calc(100% + 6px);left:0;right:0;max-height:min(42vh,280px);overflow-y:auto;overscroll-behavior:contain;padding:6px;background:#202a33;border:1px solid #536171;border-radius:12px;box-shadow:0 8px 22px #0009}.savedMenu .savedRow{display:flex;gap:8px;align-items:stretch;margin:0;padding:4px}.savedMenu .savedRow+.savedRow{border-top:1px solid #3a4651}.savedMenu .savedOpen{flex:1;text-align:left;min-width:0;background:transparent;border:0;border-radius:7px}.savedMenu .savedOpen:hover{background:#354553}.savedMenu .savedRemove{min-width:84px;align-self:center}
 
 .partApplications>summary{display:list-item;width:fit-content;cursor:pointer;border:1px solid #495560;background:#25303a;color:#fff;border-radius:10px;min-height:46px;padding:12px 16px;margin-top:16px}.partApplicationScroll{max-height:55vh;overflow-y:auto;overscroll-behavior:contain;margin-top:12px;padding-right:6px}.partApplicationScroll .card{background:#15191e}.partApplicationScroll h3{font-size:1rem}
+
 /* Ralliart-inspired charcoal, red and orange theme */
 :root{--asa-ralliart-red:#e60012;--asa-ralliart-orange:#f28c00}
 header{position:relative;isolation:isolate;overflow:hidden}
@@ -28,3 +29,42 @@ header .mark,header>div,header .settingsButton{position:relative;z-index:1}
 button:focus-visible,input:focus-visible{outline-color:var(--asa-ralliart-orange)}
 .warning,#saveVehicleError,summary{color:var(--asa-ralliart-orange)}
 #directImage{color:#ff6973}
+
+/* Each approved ASA theme provides coordinated dark and light mode tokens. */
+:root{--asa-ralliart-red:#e60012;--asa-ralliart-orange:#f28c00;--asa-light-bg:#f4f6f8;--asa-light-surface:#fff;--asa-light-raised:#e9edf1;--asa-light-text:#20262d;--asa-light-muted:#59636e;--asa-light-border:#cbd2d9;--asa-light-field:#fff;--asa-light-link:#9d0010;--asa-light-warning:#965500}
+:root[data-theme="light"]{color-scheme:light;color:var(--asa-light-text);background:var(--asa-light-bg)}
+:root[data-theme="light"] body{background:var(--asa-light-bg);color:var(--asa-light-text)}
+:root[data-theme="light"] header,:root[data-theme="light"] footer{background:var(--asa-light-surface);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] .mark{color:var(--asa-light-text)}
+:root[data-theme="light"] header p,:root[data-theme="light"] p,:root[data-theme="light"] footer,:root[data-theme="light"] .meta small,:root[data-theme="light"] .diagramButton small,:root[data-theme="light"] .categoryGrid small,:root[data-theme="light"] .subgroupGrid small,:root[data-theme="light"] .savedOpen small,:root[data-theme="light"] #partSearchResults small{color:var(--asa-light-muted)}
+:root[data-theme="light"] button:not(.import):not(.searchAction):not(.resetButton):not(#confirmSaveVehicle):not(.settingsPrimary):not([role="tab"]){background:var(--asa-light-raised);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] button:not(.import):not(.searchAction):not(.resetButton):not(#confirmSaveVehicle):not(.settingsPrimary):not([role="tab"]):hover{background:#dce2e8}
+:root[data-theme="light"] input,:root[data-theme="light"] select,:root[data-theme="light"] .savedDropdown>summary{background:var(--asa-light-field);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] .card,:root[data-theme="light"] dialog,:root[data-theme="light"] .savedMenu,:root[data-theme="light"] .recentSearches{background:var(--asa-light-surface);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] .savedMenu .savedOpen{background:transparent;color:var(--asa-light-text)}
+:root[data-theme="light"] .savedMenu .savedOpen:hover{background:var(--asa-light-raised)}
+:root[data-theme="light"] .groupTitle,:root[data-theme="light"] #partSearch{border-color:var(--asa-light-border)}
+:root[data-theme="light"] .partApplicationScroll .card{background:var(--asa-light-surface)}
+:root[data-theme="light"] summary{color:var(--asa-light-link)}
+:root[data-theme="light"] .warning,:root[data-theme="light"] #saveVehicleError{color:var(--asa-light-warning)}
+:root[data-theme="light"] #directImage{color:var(--asa-light-link)}
+:root[data-theme="light"] button:focus-visible,:root[data-theme="light"] input:focus-visible,:root[data-theme="light"] select:focus-visible{outline-color:var(--asa-ralliart-orange)}
+.fileInput{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.secondaryImport{background:#25303a;border:1px solid #495560}
+.settingsHeading{display:flex;align-items:center;gap:14px;margin-bottom:14px}.settingsHeading .backHome{margin:0}.settingsHeading h2{margin:0}.settingsHeading p{margin:3px 0 0;color:#a9b4c0}
+.settingsTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-bottom:1px solid #343c44;margin-bottom:18px}.settingsTabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:#a9b4c0;min-height:44px}.settingsTabs button[aria-selected="true"]{border-bottom-color:var(--asa-ralliart-red);color:#fff}.settingsTabs button:hover{background:#1b222a}
+.settingsTabs [role="tab"]:focus-visible{outline-offset:-3px}#settingsPage h3{font-size:1rem;margin:18px 0 10px}#settingsPage h3:first-child{margin-top:0}.settingsSubheading{border-top:1px solid #343c44;padding-top:15px}.themeSummary,.settingsInfo{display:flex;align-items:center;gap:12px;padding:13px;background:#1b232b;border:1px solid #35424e;border-radius:12px}.themeSummary strong,.themeSummary small{display:block}.themeSummary small{color:#a9b4c0;margin-top:3px}.themeSwatch{flex:0 0 44px;height:32px;border-radius:8px;background:linear-gradient(133deg,#15191e 0 45%,#e60012 45% 68%,#f28c00 68%)}
+#settingsPage label{margin:12px 0 6px}#themeMode{width:100%;min-height:46px;background:#1b222a;color:#fff;border:1px solid #57636f;border-radius:10px;padding:10px;font:inherit}#settingsPage p{font-size:.9rem}#settingsPackSummary,#offlineReadiness{line-height:1.5}#settingsPage button{max-width:100%}.settingsPrimary{width:100%;margin-top:9px;background:var(--asa-ralliart-red);border:0;color:#fff;font-weight:650}.settingsPrimary:hover{background:#b8000e}#settingsPage button:not(.settingsPrimary):not(.settingsDanger){min-height:44px}.settingsActions{display:flex;flex-wrap:wrap;gap:8px}.settingsActions button{flex:1}.settingsDanger{color:#ff6973!important;background:transparent!important;border-color:#e60012!important}.settingsDanger:hover{background:#e6001214!important}#settingsStatus,#backupStatus,#themeStatus{min-height:1.3em;color:var(--asa-ralliart-orange);overflow-wrap:anywhere}
+:root[data-theme="light"] .settingsHeading p,:root[data-theme="light"] .themeSummary small{color:var(--asa-light-muted)}
+:root[data-theme="light"] .settingsTabs{border-color:var(--asa-light-border)}
+:root[data-theme="light"] .settingsTabs button{color:var(--asa-light-muted)}
+:root[data-theme="light"] .settingsTabs button[aria-selected="true"]{color:var(--asa-light-text)}
+:root[data-theme="light"] .settingsTabs button:hover{background:var(--asa-light-raised)}
+:root[data-theme="light"] .secondaryImport{background:var(--asa-light-raised);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] .settingsSubheading{border-color:var(--asa-light-border)}
+:root[data-theme="light"] .themeSummary,:root[data-theme="light"] .settingsInfo{background:var(--asa-light-surface);border-color:var(--asa-light-border)}
+:root[data-theme="light"] #themeMode{background:var(--asa-light-field);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] #settingsStatus,:root[data-theme="light"] #backupStatus,:root[data-theme="light"] #themeStatus{color:var(--asa-light-warning)}
+:root[data-theme="light"] .settingsDanger{color:#a50012!important;border-color:#a50012!important}
+:root[data-theme="light"] #confirmSaveVehicle,:root[data-theme="light"] .settingsPrimary{background:var(--asa-ralliart-red);color:#fff}
+.settingsInfo{overflow-wrap:anywhere}#removeCatalogueDialog{max-width:520px}#removeCatalogueDialog .saveActions{display:flex;gap:10px;justify-content:flex-end}#removeCatalogueDialog .saveActions button{max-width:50%}
