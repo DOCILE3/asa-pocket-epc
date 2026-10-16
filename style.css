@@ -115,33 +115,41 @@ body.settings-open main{padding-top:20px}
 :root[data-theme="light"][data-color-theme="classic"] #settingsPage .appearanceModes button[aria-pressed="true"]{background:#e9edf1;color:var(--asa-light-text)}
 :root[data-theme="light"][data-color-theme="classic"] #settingsPage .themeChoice[aria-pressed="true"],:root[data-theme="light"][data-color-theme="classic"] #settingsPage .appearanceModes button[aria-pressed="true"]{border-color:#6f7b86}
 
-/* Carry the approved compact settings style through to the catalogue home. */
-body:has(#workspace:not([hidden])) header{height:74px;padding:12px max(18px,env(safe-area-inset-right));gap:10px}
+/* Match the approved mobile home mockup within the live PWA viewport. */
+body:has(#workspace:not([hidden])) header{height:84px;padding:12px max(22px,env(safe-area-inset-right));gap:10px}
+body:has(#workspace:not([hidden])) header>div{display:flex;align-items:center}
 body:has(#workspace:not([hidden])) header h1{font-size:1rem;white-space:nowrap}
-body:has(#workspace:not([hidden])) header p{font-size:.8rem;margin-top:3px}
-body:has(#workspace:not([hidden])) .mark{font-size:1.35rem;padding-left:7px;border-left-width:4px}
-body:has(#workspace:not([hidden])) .settingsButton{width:44px;min-width:44px;height:44px;padding:5px;border:1px solid #45515e;border-radius:12px;background:#222a33;color:#fff}
-body:has(#workspace:not([hidden])) main{max-width:560px;padding:20px 18px 100px}
-body:has(#workspace:not([hidden])) #savedVehicles{margin-bottom:20px}
-body:has(#workspace:not([hidden])) #savedVehicles h2,body:has(#workspace:not([hidden])) #partSearch h2{font-size:1.15rem;margin:0 0 10px}
-body:has(#workspace:not([hidden])) .chassisTitleRow{margin:0 0 10px}
-body:has(#workspace:not([hidden])) .chassisTitleRow h2{font-size:1.15rem}
-body:has(#workspace:not([hidden])) .savedDropdown>summary{min-height:48px;padding:12px 42px 12px 14px;border-radius:12px;background:#1c2229;border-color:#3a4652;color:var(--asa-ralliart-orange)}
-body:has(#workspace:not([hidden])) #searchForm{margin-top:20px}
-body:has(#workspace:not([hidden])) #searchForm label,body:has(#workspace:not([hidden])) #partSearch label{font-size:.82rem;letter-spacing:.35px;color:#b5c0cc;margin:0 0 8px 1px}
-body:has(#workspace:not([hidden])) .search{gap:8px;align-items:stretch}
-body:has(#workspace:not([hidden])) .search input{min-height:52px;padding:12px 14px;border-radius:12px;background:#1c2229;border-color:#3a4652}
-body:has(#workspace:not([hidden])) .search .searchAction{min-width:82px;min-height:52px;border-radius:12px;background:var(--asa-ralliart-red)}
-body:has(#workspace:not([hidden])) #genericBrowse{margin:16px 0 20px;border:1px solid #3a4652;border-radius:12px;background:#1c2229;padding:0 13px}
-body:has(#workspace:not([hidden])) #genericBrowse>summary{min-height:48px;padding:12px 0;color:var(--asa-ralliart-orange)}
+body:has(#workspace:not([hidden])) .mark{font-size:1rem;padding-left:10px;border-left-width:4px}
+body:has(#workspace:not([hidden])) .settingsButton{width:48px;min-width:48px;height:48px;padding:5px;border:1px solid #45515e;border-radius:14px;background:#222a33;color:#fff}
+body:has(#workspace:not([hidden])) main{max-width:520px;padding:32px 22px 96px}
+body:has(#workspace:not([hidden])) .connectionStatus{display:flex;align-items:center;gap:9px;margin:0 0 34px;color:#c3ccd5;font-size:.95rem}
+body:has(#workspace:not([hidden])) .connectionStatus::before{content:"";display:block;width:8px;height:8px;flex:none;border-radius:50%;background:#57c98c}
+body:has(#workspace:not([hidden])) #savedVehicles{margin-bottom:26px}
+body:has(#workspace:not([hidden])) .sectionTitle{display:flex;align-items:baseline;justify-content:space-between;margin:0 0 14px}
+body:has(#workspace:not([hidden])) .sectionTitle h2,body:has(#workspace:not([hidden])) #partSearch h2{font-size:1.4rem;margin:0}
+body:has(#workspace:not([hidden])) #savedVehicleCount{font-size:.875rem;color:#c3ccd5}
+body:has(#workspace:not([hidden])) .savedDropdown>summary{min-height:60px;padding:14px 44px 14px 17px;border-radius:15px;background:#1c2229;border-color:#3a4652;color:var(--asa-ralliart-orange)}
+body:has(#workspace:not([hidden])) #searchForm{margin-top:30px}
+body:has(#workspace:not([hidden])) #searchForm label,body:has(#workspace:not([hidden])) #partSearch label{font-size:.9rem;letter-spacing:.35px;text-transform:uppercase;color:#c3ccd5;margin:0 0 10px 1px}
+body:has(#workspace:not([hidden])) .search{gap:10px;align-items:stretch}
+body:has(#workspace:not([hidden])) .search input{min-height:60px;padding:14px 16px;border-radius:15px;background:#1c2229;border-color:#3a4652}
+body:has(#workspace:not([hidden])) .search .searchAction{min-width:96px;min-height:60px;border-radius:15px;background:var(--asa-ralliart-red)}
+body:has(#workspace:not([hidden])) #genericBrowse{margin:25px 0 29px;border:1px solid #3a4652;border-radius:15px;background:#1c2229;padding:0 16px}
+body:has(#workspace:not([hidden])) #genericBrowse>summary{position:relative;min-height:58px;padding:15px 22px 15px 0;color:var(--asa-ralliart-orange)}
+body:has(#workspace:not([hidden])) #genericBrowse>summary::-webkit-details-marker{display:list-item}
+body:has(#workspace:not([hidden])) #genericBrowse>summary::after{content:"›";position:absolute;right:1px;top:50%;transform:translateY(-50%);font-size:1.1rem;color:var(--asa-ralliart-orange)}
+body:has(#workspace:not([hidden])) #genericBrowse[open]>summary::after{content:"⌄"}
 body:has(#workspace:not([hidden])) #genericBrowse[open]{padding-bottom:12px}
 body:has(#workspace:not([hidden])) #genericBrowse p{font-size:.9rem}
-body:has(#workspace:not([hidden])) #partSearch{margin-top:22px;padding-top:20px;border-top:1px solid #3a4652}
-body:has(#workspace:not([hidden])) #partSearch form{margin-top:16px}
-body:has(#workspace:not([hidden])) #partSearch .searchAction{min-width:92px}
+body:has(#workspace:not([hidden])) #partSearch{margin-top:29px;padding-top:27px;border-top:1px solid #3a4652}
+body:has(#workspace:not([hidden])) #partSearch form{margin-top:20px}
+body:has(#workspace:not([hidden])) #partSearch .searchAction{min-width:96px}
+body:has(#workspace:not([hidden])) #offlineStatus{display:none}
+body:has(#workspace:not([hidden])) footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 :root[data-theme="light"] body:has(#workspace:not([hidden])) .settingsButton{background:var(--asa-light-raised);color:var(--asa-light-text);border-color:var(--asa-light-border)}
 :root[data-theme="light"] body:has(#workspace:not([hidden])) .savedDropdown>summary,:root[data-theme="light"] body:has(#workspace:not([hidden])) .search input,:root[data-theme="light"] body:has(#workspace:not([hidden])) #genericBrowse{background:var(--asa-light-surface);color:var(--asa-light-text);border-color:var(--asa-light-border)}
 :root[data-theme="light"] body:has(#workspace:not([hidden])) .savedDropdown>summary{color:#9d0010}
-:root[data-theme="light"] body:has(#workspace:not([hidden])) #searchForm label,:root[data-theme="light"] body:has(#workspace:not([hidden])) #partSearch label{color:var(--asa-light-muted)}
+:root[data-theme="light"] body:has(#workspace:not([hidden])) #searchForm label,:root[data-theme="light"] body:has(#workspace:not([hidden])) #partSearch label,:root[data-theme="light"] body:has(#workspace:not([hidden])) #savedVehicleCount,:root[data-theme="light"] body:has(#workspace:not([hidden])) .connectionStatus{color:var(--asa-light-muted)}
 :root[data-theme="light"] body:has(#workspace:not([hidden])) #genericBrowse>summary{color:#9d0010}
 :root[data-theme="light"] body:has(#workspace:not([hidden])) #partSearch{border-color:var(--asa-light-border)}
+:root[data-theme="light"] body:has(#workspace:not([hidden])) .connectionStatus::before{background:#24834d}

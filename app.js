@@ -183,6 +183,7 @@ $('closeParts').onclick=()=>$('parts').close();
 const chassisKey=vehicle=>vehicle.model+'-'+vehicle.serial_number;
 function renderSavedVehicles(){
  const list=$('savedVehicleList');list.replaceChildren();
+ $('savedVehicleCount').textContent=`${savedVehicles.length} saved`;
  const dropdown=document.createElement('details');dropdown.className='savedDropdown';
  const summary=text('summary',savedVehicles.length?'Choose a saved vehicle ('+savedVehicles.length+'/8)':'No saved vehicles');summary.setAttribute('aria-label','Saved vehicles');dropdown.append(summary);
  const menu=document.createElement('div');menu.className='savedMenu';
