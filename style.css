@@ -153,3 +153,11 @@ body:has(#workspace:not([hidden])) footer{display:flex;align-items:center;justif
 :root[data-theme="light"] body:has(#workspace:not([hidden])) #genericBrowse>summary{color:#9d0010}
 :root[data-theme="light"] body:has(#workspace:not([hidden])) #partSearch{border-color:var(--asa-light-border)}
 :root[data-theme="light"] body:has(#workspace:not([hidden])) .connectionStatus::before{background:#24834d}
+
+/* Red, black and grey theme, with matching dark and light modes. */
+.redGreySwatch{background:linear-gradient(133deg,#15191e 0 38%,#e60012 38% 59%,#555b63 59% 79%,#15191e 79%)}
+:root[data-color-theme="redgrey"]{--asa-ralliart-red:#e60012;--asa-ralliart-orange:#f5f6f7}
+:root[data-color-theme="redgrey"] header::after{background:linear-gradient(133deg,transparent 0 33%,var(--asa-ralliart-red) 33% 49.5%,#555b63 49.5% 64%,transparent 64%)}
+:root[data-color-theme="redgrey"] .savedDropdown>summary,:root[data-color-theme="redgrey"] #genericBrowse>summary{color:#fff}
+:root[data-theme="light"][data-color-theme="redgrey"] header::after{background:linear-gradient(133deg,transparent 0 33%,var(--asa-ralliart-red) 33% 49.5%,#d8dce1 49.5% 64%,transparent 64%)}
+:root[data-theme="light"][data-color-theme="redgrey"] .savedDropdown>summary{background:#d8dce1}
