@@ -1,32 +1,21 @@
-:root{font-family:system-ui,-apple-system,sans-serif;color:#edf1f5;background:#101418;font-size:16px;color-scheme:dark}*{box-sizing:border-box}body{margin:0}header{display:flex;align-items:center;gap:14px;padding:20px max(20px,env(safe-area-inset-right));border-bottom:1px solid #343c44;background:#15191e}h1{font-size:1.25rem;margin:0}header p{margin:4px 0 0;font-size:.875rem;color:#a9b4c0}.mark{font-weight:850;letter-spacing:-.05em;font-size:1.65rem;color:#fff;border-left:4px solid #e94646;padding-left:9px}header button{margin-left:auto}.settingsButton{width:46px;min-width:46px;padding:6px;font-size:1.55rem;line-height:1}.backHome{margin:0 0 8px}main{max-width:940px;margin:auto;padding:24px 20px 100px}h2{font-size:1.35rem}p{line-height:1.5;color:#b9c3ce}button,.import{border:1px solid #495560;background:#25303a;color:#fff;border-radius:10px;min-height:46px;padding:10px 16px;font:inherit;cursor:pointer}button:hover{background:#354553}button:focus-visible,input:focus-visible{outline:3px solid #7ecaff;outline-offset:3px}.import{display:inline-block;background:#ce363b;border:0;font-weight:650}.import input{position:absolute;width:1px;height:1px;opacity:0}label{display:block;margin-bottom:10px;font-weight:650}.search{display:flex;gap:10px}.searchField{position:relative}.recentSearches{position:absolute;z-index:30;top:calc(100% + 6px);left:0;right:92px;max-height:min(42vh,280px);overflow-y:auto;overscroll-behavior:contain;padding:6px;background:#202a33;border:1px solid #536171;border-radius:12px;box-shadow:0 8px 22px #0009}.recentSearches button{display:block;width:100%;min-height:44px;text-align:left;border:0;border-radius:7px;background:transparent}.recentSearches button+button{border-top:1px solid #3a4651}.recentSearches button:focus-visible{outline:2px solid #7ecaff;outline-offset:-2px}input{font:inherit;background:#1b222a;color:white;border:1px solid #57636f;border-radius:10px;padding:13px;width:100%;min-width:0}.search button{background:#ce363b;border:0;font-weight:650}.card{padding:18px;background:#1b232b;border:1px solid 
-
-
-
-
+:root{font-family:system-ui,-apple-system,sans-serif;color:#edf1f5;background:#101418;font-size:16px;color-scheme:dark}*{box-sizing:border-box}body{margin:0}header{display:flex;align-items:center;gap:14px;padding:20px max(20px,env(safe-area-inset-right));border-bottom:1px solid #343c44;background:#15191e}h1{font-size:1.25rem;margin:0}header p{margin:4px 0 0;font-size:.875rem;color:#a9b4c0}.mark{font-weight:850;letter-spacing:-.05em;font-size:1.65rem;color:#fff;border-left:4px solid #e94646;padding-left:9px}header button{margin-left:auto}.settingsButton{width:46px;min-width:46px;padding:6px;font-size:1.55rem;line-height:1}.backHome{margin:0 0 8px}main{max-width:940px;margin:auto;padding:24px 20px 100px}h2{font-size:1.35rem}p{line-height:1.5;color:#b9c3ce}button,.import{border:1px solid #495560;background:#25303a;color:#fff;border-radius:10px;min-height:46px;padding:10px 16px;font:inherit;cursor:pointer}button:hover{background:#354553}button:focus-visible,input:focus-visible{outline:3px solid #7ecaff;outline-offset:3px}.import{display:inline-block;background:#ce363b;border:0;font-weight:650}.import input{position:absolute;width:1px;height:1px;opacity:0}label{display:block;margin-bottom:10px;font-weight:650}.search{display:flex;gap:10px}.searchField{position:relative}.recentSearches{position:absolute;z-index:30;top:calc(100% + 6px);left:0;right:92px;max-height:min(42vh,280px);overflow-y:auto;overscroll-behavior:contain;padding:6px;background:#202a33;border:1px solid #536171;border-radius:12px;box-shadow:0 8px 22px #0009}.recentSearches button{display:block;width:100%;min-height:44px;text-align:left;border:0;border-radius:7px;background:transparent}.recentSearches button+button{border-top:1px solid #3a4651}.recentSearches button:focus-visible{outline:2px solid #7ecaff;outline-offset:-2px}input{font:inherit;background:#1b222a;color:white;border:1px solid #57636f;border-radius:10px;padding:13px;width:100%;min-width:0}.search button{background:#ce363b;border:0;font-weight:650}.card{padding:18px;background:#1b232b;border:1px solid #35424e;border-radius:14px;margin:14px 0}.card h2,.card h3{margin:0 0 12px}.meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.meta small{display:block;font-size:.875rem;color:#a9b7c4;margin-bottom:4px}.meta span{overflow-wrap:anywhere}.options{font-size:.9rem;line-height:1.65;overflow-wrap:anywhere}.warning{color:#ffd18a}.groupTitle{margin-top:26px;border-top:1px solid #35424e;padding-top:20px}.diagramButton{display:flex;text-align:left;align-items:center;gap:16px;width:100%;margin:10px 0}.diagramButton img{background:#fff;width:84px;height:90px;object-fit:contain}.diagramButton span{overflow-wrap:anywhere}.diagramButton small{display:block;color:#b5c2cc;font-size:.875rem;margin-top:5px}#viewport{overflow:visible;height:auto;max-width:none;background:transparent;touch-action:pan-x pan-y}#canvas{position:relative;overflow:visible;background:transparent}#canvas .diagramImage{display:block;width:100%;height:auto;max-width:none;background:#fff;color-scheme:light}#directImage{display:inline-block;color:#9ed1ff;margin:0 0 16px}#canvas button{z-index:1}#canvas button{position:absolute;min-height:0;padding:0;border:0;border-radius:2px;background:#e633330a;color:transparent}#canvas button:focus,#canvas button:hover{background:#e6333340;outline:2px solid #e63333}.zoom{display:flex;align-items:center;gap:18px;margin:16px 0}dialog{width:min(94vw,600px);max-height:85vh;background:#1b232b;color:white;border:1px solid #647383;border-radius:18px;padding:24px}dialog::backdrop{background:#000b}.close{float:right;font-size:1.5rem}.partno{font-size:1.4rem;font-weight:750;color:#fff}.result{width:100%;text-align:left;margin-top:10px}footer{position:fixed;bottom:0;width:100%;background:#15191ef0;border-top:1px solid #343c44;padding:12px 20px max(12px,env(safe-area-inset-bottom));font-size:.85rem;color:#bcc8d4}#importStatus{overflow-wrap:anywhere}@media(min-width:650px){.meta{grid-template-columns:repeat(3,minmax(0,1fr))}#setup{max-width:560px;margin:30px auto}}[hidden]{display:none!important}
 
 
 
 
 #savedVehicles{margin-bottom:28px}#savedVehicles h2{margin-top:0}.savedRow{display:flex;gap:10px;align-items:stretch;margin:10px 0}.savedOpen{flex:1;text-align:left;min-width:0}.savedOpen strong,.savedOpen small{display:block;overflow-wrap:anywhere}.savedOpen small{color:#b5c2cc;margin-top:5px;font-size:.875rem}.savedRemove{padding:10px;align-self:center;font-size:.875rem}.saveActions{display:flex;gap:12px;justify-content:flex-end;margin-top:20px}#confirmSaveVehicle{background:#ce363b}#saveVehicleError{color:#ffd18a}#savedVehicleStatus{font-size:.9rem}
 
-
 #partSearch{margin-top:2rem;padding-top:1rem;border-top:1px solid #34414a}#partSearchResults:empty{display:none}#partSearchResults small{display:block;color:#adb8c2}#partSearchResults h3{margin-top:0}#partSearchStatus{overflow-wrap:anywhere}
-
 
 .categoryGrid,.subgroupGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.categoryGrid button,.subgroupGrid button{text-align:left;overflow-wrap:anywhere;min-height:74px}.categoryGrid small,.subgroupGrid small{display:block;margin-top:8px;color:#b5c2cc;font-size:.8rem}.categoryGrid button{font-weight:700}#groups{margin-top:24px}summary{cursor:pointer;padding:8px 0 14px;color:#b9dfff}details .meta{margin-top:10px}@media(min-width:650px){.subgroupGrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
-
 #savedVehicleSelect{flex:1;min-width:0;min-height:46px;padding:10px 12px;font:inherit;background:#1b222a;color:#fff;border:1px solid #57636f;border-radius:10px}#saveCurrentVehicle{margin-bottom:12px;font-size:.9rem}#vehicle details{margin-bottom:12px}
-
 
 .vehicleActions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.vehicleActions #saveCurrentVehicle{margin:0}#genericBrowse{margin:18px 0}#genericBrowse>summary{cursor:pointer;min-height:44px;padding:10px 0;font-weight:650}.genericFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.genericFields select{display:block;width:100%;min-height:46px;margin-top:8px;font:inherit;color:#fff;background:#1b222a;border:1px solid #57636f;border-radius:10px;padding:10px}#genericStatus{font-size:.9rem}
 
-
 .resetButton{background:#ce363b;border-color:#ce363b;color:#fff}.resetButton:hover{background:#aa292e}.chassisTitleRow{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:12px}.chassisTitleRow h2{margin:0!important}.savedDropdown{position:relative}.savedDropdown>summary{list-style:none;position:relative;padding:12px 42px 12px 14px;background:#1b222a;border:1px solid #57636f;border-radius:10px;cursor:pointer;min-height:46px}.savedDropdown>summary::-webkit-details-marker{display:none}.savedDropdown>summary::after{content:"▾";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#b9c3ce}.savedDropdown[open]>summary::after{content:"▴"}.savedMenu{position:absolute;z-index:35;top:calc(100% + 6px);left:0;right:0;max-height:min(42vh,280px);overflow-y:auto;overscroll-behavior:contain;padding:6px;background:#202a33;border:1px solid #536171;border-radius:12px;box-shadow:0 8px 22px #0009}.savedMenu .savedRow{display:flex;gap:8px;align-items:stretch;margin:0;padding:4px}.savedMenu .savedRow+.savedRow{border-top:1px solid #3a4651}.savedMenu .savedOpen{flex:1;text-align:left;min-width:0;background:transparent;border:0;border-radius:7px}.savedMenu .savedOpen:hover{background:#354553}.savedMenu .savedRemove{min-width:84px;align-self:center}
 
-
 .partApplications>summary{display:list-item;width:fit-content;cursor:pointer;border:1px solid #495560;background:#25303a;color:#fff;border-radius:10px;min-height:46px;padding:12px 16px;margin-top:16px}.partApplicationScroll{max-height:55vh;overflow-y:auto;overscroll-behavior:contain;margin-top:12px;padding-right:6px}.partApplicationScroll .card{background:#15191e}.partApplicationScroll h3{font-size:1rem}
-
 
 /* Ralliart-inspired charcoal, red and orange theme */
 :root{--asa-ralliart-red:#e60012;--asa-ralliart-orange:#f28c00}
@@ -41,116 +30,137 @@ button:focus-visible,input:focus-visible{outline-color:var(--asa-ralliart-orange
 .warning,#saveVehicleError,summary{color:var(--asa-ralliart-orange)}
 #directImage{color:#ff6973}
 
-
 /* Each approved ASA theme provides coordinated dark and light mode tokens. */
 :root{--asa-ralliart-red:#e60012;--asa-ralliart-orange:#f28c00;--asa-light-bg:#f4f6f8;--asa-light-surface:#fff;--asa-light-raised:#e9edf1;--asa-light-text:#20262d;--asa-light-muted:#59636e;--asa-light-border:#cbd2d9;--asa-light-field:#fff;--asa-light-link:#9d0010;--asa-light-warning:#965500}
 :root[data-theme="light"]{color-scheme:light;color:var(--asa-light-text);background:var(--asa-light-bg)}
 :root[data-theme="light"] body{background:var(--asa-light-bg);color:var(--asa-light-text)}
-						77 container (showing 0-500 of 552 items)
-							78 text : root { font-family : system-ui , -apple-system , sans-serif ; color :#edf1f5; background :#101418; font-size : 16 px ; color-scheme : dark } * { box-sizing : border-box } body { margin : 0 } header { display : flex ; align-items : center ; gap : 14 px ; padding : 20 px max ( 20 px , env ( safe-area-inset-right ) ) ; border-bottom : 1 px solid  #343c44; background :#15191e } h1 { font-size : 1.25 rem ; margin : 0 } header p { margin : 4 px 0 0 ; font-size : .875 rem ; color :#a9b4c0 } .mark { font-weight : 850 ; letter-spacing : -.05 em ; font-size : 1.65 rem ; color :#fff; border-left : 4 px solid  #e94646; padding-left : 9 px } header button { margin-left : auto } .settingsButton { width : 46 px ; min-width : 46 px ; padding : 6 px ; font-size : 1.55 rem ; line-height : 1 } .backHome { margin : 0 0 8 px } main { max-width : 940 px ; margin : auto ; padding : 24 px 20 px 100 px } h2 { font-size : 1.35 rem } p { line-height : 1.5 ; color :#b9c3ce } button,.import { border : 1 px solid  #495560; background :#25303a; color :#fff; border-radius : 10 px ; min-height : 46 px ; padding : 10 px 16 px ; font : inherit ; cursor : pointer } button: hover { background :#354553 } button: focus-visible ,input: focus-visible { outline : 3 px solid  #7ecaff; outline-offset : 3 px } .import { display : inline-block ; background :#ce363b; border : 0 ; font-weight : 650 } .import input { position : absolute ; width : 1 px ; height : 1 px ; opacity : 0 } label { display : block ; margin-bottom : 10 px ; font-weight : 650 } .search { display : flex ; gap : 10 px } .searchField { position : relative } .recentSearches { position : absolute ; z-index : 30 ; top : calc ( 100 %  +  6 px ) ; left : 0 ; right : 92 px ; max-height : min ( 42 vh , 280 px ) ; overflow-y : auto ; overscroll-behavior : contain ; padding : 6 px ; background :#202a33; border : 1 px solid  #536171; border-radius : 12 px ; box-shadow : 0 8 px 22 px  #0009 } .recentSearches button { display : block ; width : 100 % ; min-height : 44 px ; text-align : left ; border : 0 ; border-radius : 7 px ; background : transparent } .recentSearches button+button { border-top : 1 px solid  #3a4651 } .recentSearches button: focus-visible { outline : 2 px solid  #7ecaff; outline-offset : -2 px } input { font : inherit ; background :#1b222a; color : white ; border : 1
-						79 container
-							80 text #savedVehicles { margin-bottom : 28 px } #savedVehicles h2 { margin-top : 0 } .savedRow { display : flex ; gap : 10 px ; align-items : stretch ; margin : 10 px 0 } .savedOpen { flex : 1 ; text-align : left ; min-width : 0 } .savedOpen strong,.savedOpen small { display : block ; overflow-wrap : anywhere } .savedOpen small { color :#b5c2cc; margin-top : 5 px ; font-size : .875 rem } .savedRemove { padding : 10 px ; align-self : center ; font-size : .875 rem } .saveActions { display : flex ; gap : 12 px ; justify-content : flex-end ; margin-top : 20 px } #confirmSaveVehicle { background :#ce363b } #saveVehicleError { color :#ffd18a } #savedVehicleStatus { font-size : .9 rem }
-						81 container
-							82 text #partSearch { margin-top : 2 rem ; padding-top : 1 rem ; border-top : 1 px solid  #34414a } #partSearchResults: empty { display : none } #partSearchResults small { display : block ; color :#adb8c2 } #partSearchResults h3 { margin-top : 0 } #partSearchStatus { overflow-wrap : anywhere }
-						83 container
-							84 text .categoryGrid,.subgroupGrid { display : grid ; grid-template-columns : repeat ( 2 , minmax ( 0 , 1 fr ) ) ; gap : 10 px } .categoryGrid button,.subgroupGrid button { text-align : left ; overflow-wrap : anywhere ; min-height : 74 px } .categoryGrid small,.subgroupGrid small { display : block ; margin-top : 8 px ; color :#b5c2cc; font-size : .8 rem } .categoryGrid button { font-weight : 700 } #groups { margin-top : 24 px } summary { cursor : pointer ; padding : 8 px 0 14 px ; color :#b9dfff } details .meta { margin-top : 10 px } @media ( min-width : 650 px ) { .subgroupGrid { grid-template-columns : repeat ( 3 , minmax ( 0 , 1 fr ) ) } }
-						85 container
-							86 text #savedVehicleSelect { flex : 1 ; min-width : 0 ; min-height : 46 px ; padding : 10 px 12 px ; font : inherit ; background :#1b222a; color :#fff; border : 1 px solid  #57636f; border-radius : 10 px } #saveCurrentVehicle { margin-bottom : 12 px ; font-size : .9 rem } #vehicle details { margin-bottom : 12 px }
-						87 container
-							88 text .vehicleActions { display : flex ; gap : 10 px ; flex-wrap : wrap ; align-items : center } .vehicleActions #saveCurrentVehicle { margin : 0 } #genericBrowse { margin : 18 px 0 } #genericBrowse>summary { cursor : pointer ; min-height : 44 px ; padding : 10 px 0 ; font-weight : 650 } .genericFields { display : grid ; grid-template-columns : repeat ( 2 , minmax ( 0 , 1 fr ) ) ; gap : 12 px } .genericFields select { display : block ; width : 100 % ; min-height : 46 px ; margin-top : 8 px ; font : inherit ; color :#fff; background :#1b222a; border : 1 px solid  #57636f; border-radius : 10 px ; padding : 10 px } #genericStatus { font-size : .9 rem }
-						89 container
-							90 text .resetButton { background :#ce363b; border-color :#ce363b; color :#fff } .resetButton: hover { background :#aa292e } .chassisTitleRow { display : flex ; justify-content : space-between ; align-items : start ; gap : 12 px ; margin-bottom : 12 px } .chassisTitleRow h2 { margin : 0 !important } .savedDropdown { position : relative } .savedDropdown>summary { list-style : none ; position : relative ; padding : 12 px 42 px 12 px 14 px ; background :#1b222a; border : 1 px solid  #57636f; border-radius : 10 px ; cursor : pointer ; min-height : 46 px } .savedDropdown>summary:: -webkit-details-marker { display : none } .savedDropdown>summary:: after { content : "▾" ; position : absolute ; right : 14 px ; top : 50 % ; transform : translateY ( -50 % ) ; color :#b9c3ce } .savedDropdown [ open ] >summary:: after { content : "▴" } .savedMenu { position : absolute ; z-index : 35 ; top : calc ( 100 %  +  6 px ) ; left : 0 ; right : 0 ; max-height : min ( 42 vh , 280 px ) ; overflow-y : auto ; overscroll-behavior : contain ; padding : 6 px ; background :#202a33; border : 1 px solid  #536171; border-radius : 12 px ; box-shadow : 0 8 px 22 px  #0009 } .savedMenu .savedRow { display : flex ; gap : 8 px ; align-items : stretch ; margin : 0 ; padding : 4 px } .savedMenu .savedRow+.savedRow { border-top : 1 px solid  #3a4651 } .savedMenu .savedOpen { flex : 1 ; text-align : left ; min-width : 0 ; background : transparent ; border : 0 ; border-radius : 7 px } .savedMenu .savedOpen: hover { background :#354553 } .savedMenu .savedRemove { min-width : 84 px ; align-self : center }
-						91 container
-							92 text .partApplications>summary { display : list-item ; width : fit-content ; cursor : pointer ; border : 1 px solid  #495560; background :#25303a; color :#fff; border-radius : 10 px ; min-height : 46 px ; padding : 12 px 16 px ; margin-top : 16 px } .partApplicationScroll { max-height : 55 vh ; overflow-y : auto ; overscroll-behavior : contain ; margin-top : 12 px ; padding-right : 6 px } .partApplicationScroll .card { background :#15191e } .partApplicationScroll h3 { font-size : 1 rem }
-						93 text /* Ralliart-inspired charcoal, red and orange theme */
-						94 container
-							95 text : root { --asa-ralliart-red:#e60012;--asa-ralliart-orange:#f28c00 }
-						96 container
-							97 text header { position : relative ; isolation : isolate ; overflow : hidden }
-						98 container
-							99 text header:: after { content : "" ; position : absolute ; z-index : -1 ; pointer-events : none ; top : 0 ; right : -18 px ; width : 130 px ; height : 100 % ; background : linear-gradient ( 133 deg , transparent 0 33 % , var ( --asa-ralliart-red ) 33 % 49.5 % , var ( --asa-ralliart-orange ) 49.5 % 64 % , transparent 64 % ) }
-						100 container
-							101 text header .mark,header>div,header .settingsButton { position : relative ; z-index : 1 }
-						102 container
-							103 text .mark { border-left-color : var ( --asa-ralliart-red ) }
-						104 container
-							105 text .import,.search button,#confirmSaveVehicle,.resetButton { background : var ( --asa-ralliart-red ) }
-						106 container
-							107 text .import: hover ,.search button: hover ,#confirmSaveVehicle: hover ,.resetButton: hover { background :#b8000e }
-						108 container
-							109 text .resetButton { border-color : var ( --asa-ralliart-red ) }
-						110 container
-							111 text button: focus-visible ,input: focus-visible { outline-color : var ( --asa-ralliart-orange ) }
-						112 container
-							113 text .warning,#saveVehicleError,summary { color : var ( --asa-ralliart-orange ) }
-						114 container
-							115 text #directImage { color :#ff6973 }
-						116 text /* Each approved ASA theme provides coordinated dark and light mode tokens. */
-						117 container
-							118 text : root { --asa-ralliart-red:#e60012;--asa-ralliart-orange:#f28c00;--asa-light-bg:#f4f6f8;--asa-light-surface:#fff;--asa-light-raised:#e9edf1;--asa-light-text:#20262d;--asa-light-muted:#59636e;--asa-light-border:#cbd2d9;--asa-light-field:#fff;--asa-light-link:#9d0010;--asa-light-warning:#965500 }
-						119 container
-							120 text : root [ data-theme = "light" ] { color-scheme : light ; color : var ( --asa-light-text ) ; background : var ( --asa-light-bg ) }
-						121 container
-							122 text : root [ data-theme = "light" ]  body { background : var ( --asa-light-bg ) ; color : var ( --asa-light-text ) }
-				123 container focus-trap-help-panel
-					124 text Use 
-					125 text Control + Shift + m
-					126 text  to toggle the 
-					127 text tab
-					128 text  key moving focus. Alternatively, use 
-					129 text esc
-					130 text  then 
-					131 text tab
-					132 text  to move to the next interactive element on the page.
+:root[data-theme="light"] header,:root[data-theme="light"] footer{background:var(--asa-light-surface);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] .mark{color:var(--asa-light-text)}
+:root[data-theme="light"] header p,:root[data-theme="light"] p,:root[data-theme="light"] footer,:root[data-theme="light"] .meta small,:root[data-theme="light"] .diagramButton small,:root[data-theme="light"] .categoryGrid small,:root[data-theme="light"] .subgroupGrid small,:root[data-theme="light"] .savedOpen small,:root[data-theme="light"] #partSearchResults small{color:var(--asa-light-muted)}
+:root[data-theme="light"] button:not(.import):not(.searchAction):not(.resetButton):not(#confirmSaveVehicle):not(.settingsPrimary):not([role="tab"]){background:var(--asa-light-raised);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] button:not(.import):not(.searchAction):not(.resetButton):not(#confirmSaveVehicle):not(.settingsPrimary):not([role="tab"]):hover{background:#dce2e8}
+:root[data-theme="light"] input,:root[data-theme="light"] select,:root[data-theme="light"] .savedDropdown>summary{background:var(--asa-light-field);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] .card,:root[data-theme="light"] dialog,:root[data-theme="light"] .savedMenu,:root[data-theme="light"] .recentSearches{background:var(--asa-light-surface);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] .savedMenu .savedOpen{background:transparent;color:var(--asa-light-text)}
+:root[data-theme="light"] .savedMenu .savedOpen:hover{background:var(--asa-light-raised)}
+:root[data-theme="light"] .groupTitle,:root[data-theme="light"] #partSearch{border-color:var(--asa-light-border)}
+:root[data-theme="light"] .partApplicationScroll .card{background:var(--asa-light-surface)}
+:root[data-theme="light"] summary{color:var(--asa-light-link)}
+:root[data-theme="light"] .warning,:root[data-theme="light"] #saveVehicleError{color:var(--asa-light-warning)}
+:root[data-theme="light"] #directImage{color:var(--asa-light-link)}
+:root[data-theme="light"] button:focus-visible,:root[data-theme="light"] input:focus-visible,:root[data-theme="light"] select:focus-visible{outline-color:var(--asa-ralliart-orange)}
+.fileInput{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.secondaryImport{background:#25303a;border:1px solid #495560}
+.settingsHeading{display:flex;align-items:center;gap:14px;margin-bottom:14px}.settingsHeading .backHome{margin:0}.settingsHeading h2{margin:0}.settingsHeading p{margin:3px 0 0;color:#a9b4c0}
+.settingsTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-bottom:1px solid #343c44;margin-bottom:18px}.settingsTabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:#a9b4c0;min-height:44px}.settingsTabs button[aria-selected="true"]{border-bottom-color:var(--asa-ralliart-red);color:#fff}.settingsTabs button:hover{background:#1b222a}
+.settingsTabs [role="tab"]:focus-visible{outline-offset:-3px}#settingsPage h3{font-size:1rem;margin:18px 0 10px}#settingsPage h3:first-child{margin-top:0}.settingsSubheading{border-top:1px solid #343c44;padding-top:15px}.themeSummary,.settingsInfo{display:flex;align-items:center;gap:12px;padding:13px;background:#1b232b;border:1px solid #35424e;border-radius:12px}.themeSummary strong,.themeSummary small{display:block}.themeSummary small{color:#a9b4c0;margin-top:3px}.themeSwatch{flex:0 0 44px;height:32px;border-radius:8px;background:linear-gradient(133deg,#15191e 0 45%,#e60012 45% 68%,#f28c00 68%)}
+#settingsPage label{margin:12px 0 6px}#themeMode{width:100%;min-height:46px;background:#1b222a;color:#fff;border:1px solid #57636f;border-radius:10px;padding:10px;font:inherit}#settingsPage p{font-size:.9rem}#settingsPackSummary,#offlineReadiness{line-height:1.5}#settingsPage button{max-width:100%}.settingsPrimary{width:100%;margin-top:9px;background:var(--asa-ralliart-red);border:0;color:#fff;font-weight:650}.settingsPrimary:hover{background:#b8000e}.settingsPackActions{display:grid;gap:8px;margin-top:9px}.settingsPackActions button{width:100%;margin:0}#settingsPage button:disabled{opacity:.5;cursor:not-allowed}#settingsPage button:not(.settingsPrimary):not(.settingsDanger){min-height:44px}.settingsActions{display:flex;flex-wrap:wrap;gap:8px}.settingsActions button{flex:1}.settingsDanger{color:#ff6973!important;background:transparent!important;border-color:#e60012!important}.settingsDanger:hover{background:#e6001214!important}#settingsStatus,#backupStatus,#themeStatus{min-height:1.3em;color:var(--asa-ralliart-orange);overflow-wrap:anywhere}
+:root[data-theme="light"] .settingsHeading p,:root[data-theme="light"] .themeSummary small{color:var(--asa-light-muted)}
+:root[data-theme="light"] .settingsTabs{border-color:var(--asa-light-border)}
+:root[data-theme="light"] .settingsTabs button{color:var(--asa-light-muted)}
+:root[data-theme="light"] .settingsTabs button[aria-selected="true"]{color:var(--asa-light-text)}
+:root[data-theme="light"] .settingsTabs button:hover{background:var(--asa-light-raised)}
+:root[data-theme="light"] .secondaryImport{background:var(--asa-light-raised);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] .settingsSubheading{border-color:var(--asa-light-border)}
+:root[data-theme="light"] .themeSummary,:root[data-theme="light"] .settingsInfo{background:var(--asa-light-surface);border-color:var(--asa-light-border)}
+:root[data-theme="light"] #themeMode{background:var(--asa-light-field);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] #settingsStatus,:root[data-theme="light"] #backupStatus,:root[data-theme="light"] #themeStatus{color:var(--asa-light-warning)}
+:root[data-theme="light"] .settingsDanger{color:#a50012!important;border-color:#a50012!important}
+:root[data-theme="light"] #confirmSaveVehicle,:root[data-theme="light"] .settingsPrimary{background:var(--asa-ralliart-red);color:#fff}
+.settingsInfo{overflow-wrap:anywhere}#removeCatalogueDialog{max-width:520px}#removeCatalogueDialog .saveActions{display:flex;gap:10px;justify-content:flex-end}#removeCatalogueDialog .saveActions button{max-width:50%}
 
-The focused UI element is 76 text entry area (settable) Editing style.css file contents Use Control + Shift + m to toggle the tab key moving focus. Alternatively, use esc then tab to move to the next interactive element on the page., Value: :root{font-family:system-ui,-apple-system,sans-serif;color:#edf1f5;background:#101418;font-size:16px;color-scheme:dark}*{box-sizing:border-box}body{margin:0}header{display:flex;align-items:center;gap:14px;padding:20px max(20px,env(safe-area-inset-right));border-bottom:1px solid #343c44;background:#15191e}h1{font-size:1.25rem;margin:0}header p{margin:4px 0 0;font-size:.875rem;color:#a9b4c0}.mark{font-weight:850;letter-spacing:-.05em;font-size:1.65rem;color:#fff;border-left:4px solid #e94646;padding-left:9px}header button{margin-left:auto}.settingsButton{width:46px;min-width:46px;padding:6px;font-size:1.55rem;line-height:1}.backHome{margin:0 0 8px}main{max-width:940px;margin:auto;padding:24px 20px 100px}h2{font-size:1.35rem}p{line-height:1.5;color:#b9c3ce}button,.import{border:1px solid #495560;background:#25303a;color:#fff;border-radius:10px;min-height:46px;padding:10px 16px;font:inherit;cursor:pointer}button:hover{background:#354553}button:focus-visible,input:focus-visible{outline:3px solid #7ecaff;outline-offset:3px}.import{display:inline-block;background:#ce363b;border:0;font-weight:650}.import input{position:absolute;width:1px;height:1px;opacity:0}label{display:block;margin-bottom:10px;font-weight:650}.search{display:flex;gap:10px}.searchField{position:relative}.recentSearches{position:absolute;z-index:30;top:calc(100% + 6px);left:0;right:92px;max-height:min(42vh,280px);overflow-y:auto;overscroll-behavior:contain;padding:6px;background:#202a33;border:1px solid #536171;border-radius:12px;box-shadow:0 8px 22px #0009}.recentSearches button{display:block;width:100%;min-height:44px;text-align:left;border:0;border-radius:7px;background:transparent}.recentSearches button+button{border-top:1px solid #3a4651}.recentSearches button:focus-visible{outline:2px solid #7ecaff;outline-offset:-2px}input{font:inherit;background:#1b222a;color:white;border:1px solid #57636f;border-radius:10px;padding:13px;width:100%;min-width:0}.search button{background:#ce363b;border:0;font-weight:650}.card{padding:18px;background:#1b232b;border:1px solid 
+/* Match the compact, card-based appearance chooser from the approved mockup. */
+body.settings-open header{height:66px;padding:14px max(20px,env(safe-area-inset-right));gap:10px}
+body.settings-open header h1{font-size:1rem;white-space:nowrap}
+body.settings-open header p{display:none}
+body.settings-open header .mark{font-size:1.35rem;padding-left:7px}
+body.settings-open main{padding-top:20px}
+.settingsHeading{display:block;margin-bottom:20px}
+.settingsHeading .backHome{display:block;min-height:32px;padding:0;margin:0 0 10px;border:0;border-radius:0;background:transparent;color:#b9dfff;font-size:.9rem;text-align:left}
+.settingsHeading .backHome:hover{background:transparent;text-decoration:underline}
+.settingsHeading h2{font-size:1.65rem}
+.themeChoices{display:grid;gap:10px}
+#settingsPage .themeChoice{display:flex;align-items:center;gap:14px;width:100%;min-height:74px;padding:10px 14px;text-align:left;background:#1b222a;border:1px solid #35424e;border-radius:14px}
+#settingsPage .themeChoice:hover{background:#202a33}
+#settingsPage .themeChoice[aria-pressed="true"]{border-color:var(--asa-ralliart-red);box-shadow:inset 4px 0 var(--asa-ralliart-red)}
+.themeSwatch{flex:0 0 52px;width:52px;height:50px;border-radius:10px}
+.ralliartSwatch{background:linear-gradient(133deg,#15191e 0 45%,#e60012 45% 68%,#f28c00 68%)}
+.classicSwatch{background:linear-gradient(135deg,#15191e,#49525b)}
+.themeChoiceCopy{flex:1;min-width:0}
+.themeChoiceCopy strong,.themeChoiceCopy small{display:block}
+.themeChoiceCopy small{margin-top:3px;color:#a9b4c0;font-size:.88rem}
+.themeChoiceMark{width:22px;height:22px;flex:0 0 22px;border:2px solid #a9b4c0;border-radius:50%}
+.themeChoice[aria-pressed="true"] .themeChoiceMark{border-color:var(--asa-ralliart-red);background:radial-gradient(circle,var(--asa-ralliart-red) 0 5px,transparent 5.5px)}
+.appearanceModes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#settingsPage .appearanceModes button{min-width:0;min-height:54px;background:#1b222a;border:1px solid #35424e;color:#b9c3ce}
+#settingsPage .appearanceModes button[aria-pressed="true"]{background:#35191e;border-color:var(--asa-ralliart-red);color:#fff;font-weight:650}
+:root[data-theme="light"] #settingsPage .themeChoice,:root[data-theme="light"] #settingsPage .appearanceModes button{background:var(--asa-light-surface);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] #settingsPage .themeChoice[aria-pressed="true"],:root[data-theme="light"] #settingsPage .appearanceModes button[aria-pressed="true"]{background:#fff1f2;border-color:var(--asa-ralliart-red)}
+:root[data-theme="light"] .themeChoiceCopy small{color:var(--asa-light-muted)}
+:root[data-theme="light"] .settingsHeading .backHome{background:transparent;color:var(--asa-light-link)}
+:root[data-theme="light"] .settingsHeading .backHome:hover{background:transparent}
+:root[data-theme="light"] #settingsPage .appearanceModes button{color:var(--asa-light-text)}
+:root[data-theme="light"] #settingsPage .appearanceModes button[aria-pressed="true"]{color:#3b1116}
+:root[data-color-theme="classic"]{--asa-ralliart-red:#6f7b86;--asa-ralliart-orange:#9aa4ad}
+:root[data-color-theme="classic"] header::after{display:none}
+:root[data-color-theme="classic"] .mark{border-left-color:#6f7b86}
+:root[data-color-theme="classic"] .import,:root[data-color-theme="classic"] .search button,:root[data-color-theme="classic"] #confirmSaveVehicle,:root[data-color-theme="classic"] .resetButton,:root[data-color-theme="classic"] .settingsPrimary{background:#45505a;border-color:#45505a}
+:root[data-color-theme="classic"] .import:hover,:root[data-color-theme="classic"] .search button:hover,:root[data-color-theme="classic"] #confirmSaveVehicle:hover,:root[data-color-theme="classic"] .resetButton:hover,:root[data-color-theme="classic"] .settingsPrimary:hover{background:#596570}
+:root[data-color-theme="classic"] .warning,:root[data-color-theme="classic"] #saveVehicleError,:root[data-color-theme="classic"] summary{color:#aab4bd}
+:root[data-color-theme="classic"] #directImage{color:#b9c3ce}
+:root[data-color-theme="classic"] .settingsDanger{border-color:#6f7b86!important;color:#b9c3ce!important}
+:root[data-color-theme="classic"] #settingsPage .appearanceModes button[aria-pressed="true"]{background:#313a42}
+:root[data-color-theme="classic"] #settingsPage .themeChoice[aria-pressed="true"],:root[data-color-theme="classic"] #settingsPage .appearanceModes button[aria-pressed="true"]{border-color:#6f7b86}
+:root[data-color-theme="classic"] #settingsPage .themeChoice[aria-pressed="true"] .themeChoiceMark{border-color:#6f7b86;background:radial-gradient(circle,#6f7b86 0 5px,transparent 5.5px)}
+:root[data-theme="light"][data-color-theme="classic"] #settingsPage .appearanceModes button[aria-pressed="true"]{background:#e9edf1;color:var(--asa-light-text)}
+:root[data-theme="light"][data-color-theme="classic"] #settingsPage .themeChoice[aria-pressed="true"],:root[data-theme="light"][data-color-theme="classic"] #settingsPage .appearanceModes button[aria-pressed="true"]{border-color:#6f7b86}
 
+/* Match the approved mobile home mockup within the live PWA viewport. */
+body:has(#workspace:not([hidden])) header{height:84px;padding:12px max(22px,env(safe-area-inset-right));gap:10px}
+body:has(#workspace:not([hidden])) header>div{display:flex;align-items:center}
+body:has(#workspace:not([hidden])) header h1{font-size:1rem;white-space:nowrap}
+body:has(#workspace:not([hidden])) .mark{font-size:1rem;padding-left:10px;border-left-width:4px}
+body:has(#workspace:not([hidden])) .settingsButton{width:48px;min-width:48px;height:48px;padding:5px;border:1px solid #45515e;border-radius:14px;background:#222a33;color:#fff}
+body:has(#workspace:not([hidden])) main{max-width:520px;padding:32px 22px 96px}
+body:has(#workspace:not([hidden])) .connectionStatus{display:flex;align-items:center;gap:9px;margin:0 0 34px;color:#c3ccd5;font-size:.95rem}
+body:has(#workspace:not([hidden])) .connectionStatus::before{content:"";display:block;width:8px;height:8px;flex:none;border-radius:50%;background:#57c98c}
+body:has(#workspace:not([hidden])) #savedVehicles{margin-bottom:26px}
+body:has(#workspace:not([hidden])) .sectionTitle{display:flex;align-items:baseline;justify-content:space-between;margin:0 0 14px}
+body:has(#workspace:not([hidden])) .sectionTitle h2,body:has(#workspace:not([hidden])) #partSearch h2{font-size:1.4rem;margin:0}
+body:has(#workspace:not([hidden])) #savedVehicleCount{font-size:.875rem;color:#c3ccd5}
+body:has(#workspace:not([hidden])) .savedDropdown>summary{min-height:60px;padding:14px 44px 14px 17px;border-radius:15px;background:#1c2229;border-color:#3a4652;color:var(--asa-ralliart-orange)}
+body:has(#workspace:not([hidden])) #searchForm{margin-top:30px}
+body:has(#workspace:not([hidden])) #searchForm label,body:has(#workspace:not([hidden])) #partSearch label{font-size:.9rem;letter-spacing:.35px;text-transform:uppercase;color:#c3ccd5;margin:0 0 10px 1px}
+body:has(#workspace:not([hidden])) .search{gap:10px;align-items:stretch}
+body:has(#workspace:not([hidden])) .search input{min-height:60px;padding:14px 16px;border-radius:15px;background:#1c2229;border-color:#3a4652}
+body:has(#workspace:not([hidden])) .search .searchAction{min-width:96px;min-height:60px;border-radius:15px;background:var(--asa-ralliart-red)}
+body:has(#workspace:not([hidden])) #genericBrowse{margin:25px 0 29px;border:1px solid #3a4652;border-radius:15px;background:#1c2229;padding:0 16px}
+body:has(#workspace:not([hidden])) #genericBrowse>summary{position:relative;min-height:58px;padding:15px 22px 15px 0;color:var(--asa-ralliart-orange)}
+body:has(#workspace:not([hidden])) #genericBrowse>summary::-webkit-details-marker{display:list-item}
+body:has(#workspace:not([hidden])) #genericBrowse>summary::after{content:"›";position:absolute;right:1px;top:50%;transform:translateY(-50%);font-size:1.1rem;color:var(--asa-ralliart-orange)}
+body:has(#workspace:not([hidden])) #genericBrowse[open]>summary::after{content:"⌄"}
+body:has(#workspace:not([hidden])) #genericBrowse[open]{padding-bottom:12px}
+body:has(#workspace:not([hidden])) #genericBrowse p{font-size:.9rem}
+body:has(#workspace:not([hidden])) #partSearch{margin-top:29px;padding-top:27px;border-top:1px solid #3a4652}
+body:has(#workspace:not([hidden])) #partSearch form{margin-top:20px}
+body:has(#workspace:not([hidden])) #partSearch .searchAction{min-width:96px}
+body:has(#workspace:not([hidden])) #offlineStatus{display:none}
+body:has(#workspace:not([hidden])) footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+:root[data-theme="light"] body:has(#workspace:not([hidden])) .settingsButton{background:var(--asa-light-raised);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] body:has(#workspace:not([hidden])) .savedDropdown>summary,:root[data-theme="light"] body:has(#workspace:not([hidden])) .search input,:root[data-theme="light"] body:has(#workspace:not([hidden])) #genericBrowse{background:var(--asa-light-surface);color:var(--asa-light-text);border-color:var(--asa-light-border)}
+:root[data-theme="light"] body:has(#workspace:not([hidden])) .savedDropdown>summary{color:#9d0010}
+:root[data-theme="light"] body:has(#workspace:not([hidden])) #searchForm label,:root[data-theme="light"] body:has(#workspace:not([hidden])) #partSearch label,:root[data-theme="light"] body:has(#workspace:not([hidden])) #savedVehicleCount,:root[data-theme="light"] body:has(#workspace:not([hidden])) .connectionStatus{color:var(--asa-light-muted)}
+:root[data-theme="light"] body:has(#workspace:not([hidden])) #genericBrowse>summary{color:#9d0010}
+:root[data-theme="light"] body:has(#workspace:not([hidden])) #partSearch{border-color:var(--asa-light-border)}
+:root[data-theme="light"] body:has(#workspace:not([hidden])) .connectionStatus::before{background:#24834d}
 
-
-
-
-
-
-
-#savedVehicles{margin-bottom:28px}#savedVehicles h2{margin-top:0}.savedRow{display:flex;gap:10px;align-items:stretch;margin:10px 0}.savedOpen{flex:1;text-align:left;min-width:0}.savedOpen strong,.savedOpen small{display:block;overflow-wrap:anywhere}.savedOpen small{color:#b5c2cc;margin-top:5px;font-size:.875rem}.savedRemove{padding:10px;align-self:center;font-size:.875rem}.saveActions{display:flex;gap:12px;justify-content:flex-end;margin-top:20px}#confirmSaveVehicle{background:#ce363b}#saveVehicleError{color:#ffd18a}#savedVehicleStatus{font-size:.9rem}
-
-
-#partSearch{margin-top:2rem;padding-top:1rem;border-top:1px solid #34414a}#partSearchResults:empty{display:none}#partSearchResults small{display:block;color:#adb8c2}#partSearchResults h3{margin-top:0}#partSearchStatus{overflow-wrap:anywhere}
-
-
-.categoryGrid,.subgroupGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.categoryGrid button,.subgroupGrid button{text-align:left;overflow-wrap:anywhere;min-height:74px}.categoryGrid small,.subgroupGrid small{display:block;margin-top:8px;color:#b5c2cc;font-size:.8rem}.categoryGrid button{font-weight:700}#groups{margin-top:24px}summary{cursor:pointer;padding:8px 0 14px;color:#b9dfff}details .meta{margin-top:10px}@media(min-width:650px){.subgroupGrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-
-
-#savedVehicleSelect{flex:1;min-width:0;min-height:46px;padding:10px 12px;font:inherit;background:#1b222a;color:#fff;border:1px solid #57636f;border-radius:10px}#saveCurrentVehicle{margin-bottom:12px;font-size:.9rem}#vehicle details{margin-bottom:12px}
-
-
-.vehicleActions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.vehicleActions #saveCurrentVehicle{margin:0}#genericBrowse{margin:18px 0}#genericBrowse>summary{cursor:pointer;min-height:44px;padding:10px 0;font-weight:650}.genericFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.genericFields select{display:block;width:100%;min-height:46px;margin-top:8px;font:inherit;color:#fff;background:#1b222a;border:1px solid #57636f;border-radius:10px;padding:10px}#genericStatus{font-size:.9rem}
-
-
-.resetButton{background:#ce363b;border-color:#ce363b;color:#fff}.resetButton:hover{background:#aa292e}.chassisTitleRow{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:12px}.chassisTitleRow h2{margin:0!important}.savedDropdown{position:relative}.savedDropdown>summary{list-style:none;position:relative;padding:12px 42px 12px 14px;background:#1b222a;border:1px solid #57636f;border-radius:10px;cursor:pointer;min-height:46px}.savedDropdown>summary::-webkit-details-marker{display:none}.savedDropdown>summary::after{content:"▾";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#b9c3ce}.savedDropdown[open]>summary::after{content:"▴"}.savedMenu{position:absolute;z-index:35;top:calc(100% + 6px);left:0;right:0;max-height:min(42vh,280px);overflow-y:auto;overscroll-behavior:contain;padding:6px;background:#202a33;border:1px solid #536171;border-radius:12px;box-shadow:0 8px 22px #0009}.savedMenu .savedRow{display:flex;gap:8px;align-items:stretch;margin:0;padding:4px}.savedMenu .savedRow+.savedRow{border-top:1px solid #3a4651}.savedMenu .savedOpen{flex:1;text-align:left;min-width:0;background:transparent;border:0;border-radius:7px}.savedMenu .savedOpen:hover{background:#354553}.savedMenu .savedRemove{min-width:84px;align-self:center}
-
-
-.partApplications>summary{display:list-item;width:fit-content;cursor:pointer;border:1px solid #495560;background:#25303a;color:#fff;border-radius:10px;min-height:46px;padding:12px 16px;margin-top:16px}.partApplicationScroll{max-height:55vh;overflow-y:auto;overscroll-behavior:contain;margin-top:12px;padding-right:6px}.partApplicationScroll .card{background:#15191e}.partApplicationScroll h3{font-size:1rem}
-
-
-/* Ralliart-inspired charcoal, red and orange theme */
-:root{--asa-ralliart-red:#e60012;--asa-ralliart-orange:#f28c00}
-header{position:relative;isolation:isolate;overflow:hidden}
-header::after{content:"";position:absolute;z-index:-1;pointer-events:none;top:0;right:-18px;width:130px;height:100%;background:linear-gradient(133deg,transparent 0 33%,var(--asa-ralliart-red) 33% 49.5%,var(--asa-ralliart-orange) 49.5% 64%,transparent 64%)}
-header .mark,header>div,header .settingsButton{position:relative;z-index:1}
-.mark{border-left-color:var(--asa-ralliart-red)}
-.import,.search button,#confirmSaveVehicle,.resetButton{background:var(--asa-ralliart-red)}
-.import:hover,.search button:hover,#confirmSaveVehicle:hover,.resetButton:hover{background:#b8000e}
-.resetButton{border-color:var(--asa-ralliart-red)}
-button:focus-visible,input:focus-visible{outline-color:var(--asa-ralliart-orange)}
-.warning,#saveVehicleError,summary{color:var(--asa-ralliart-orange)}
-#directImage{color:#ff6973}
-
-
-/* Each approved ASA theme provides coordinated dark and light mode tokens. */
-:root{--asa-ralliart-red:#e60012;--asa-ralliart-orange:#f28c00;--asa-light-bg:#f4f6f8;--asa-light-surface:#fff;--asa-light-raised:#e9edf1;--asa-light-text:#20262d;--asa-light-muted:#59636e;--asa-light-border:#cbd2d9;--asa-light-field:#fff;--asa-light-link:#9d0010;--asa-light-warning:#965500}
-:root[data-theme="light"]{color-scheme:light;color:var(--asa-light-text);background:var(--asa-light-bg)}
-:root[data-theme="light"] body{background:var(--asa-light-bg);color:var(--asa-light-text)}
+/* Red, black and grey theme, with matching dark and light modes. */
+.redGreySwatch{background:linear-gradient(133deg,#15191e 0 38%,#e60012 38% 59%,#555b63 59% 79%,#15191e 79%)}
+:root[data-color-theme="redgrey"]{--asa-ralliart-red:#e60012;--asa-ralliart-orange:#f5f6f7}
+:root[data-color-theme="redgrey"] header::after{background:linear-gradient(133deg,transparent 0 33%,var(--asa-ralliart-red) 33% 49.5%,#555b63 49.5% 64%,transparent 64%)}
+:root[data-color-theme="redgrey"] .savedDropdown>summary,:root[data-color-theme="redgrey"] #genericBrowse>summary{color:#fff}
+:root[data-theme="light"][data-color-theme="redgrey"] header::after{background:linear-gradient(133deg,transparent 0 33%,var(--asa-ralliart-red) 33% 49.5%,#d8dce1 49.5% 64%,transparent 64%)}
+:root[data-theme="light"][data-color-theme="redgrey"] .savedDropdown>summary{background:#d8dce1}
 
 /* Action-first welcome screen shown before a chassis data pack is installed. */
 #setup.welcomePage{max-width:560px;min-height:calc(100svh - 210px);margin:0 auto;display:flex;flex-direction:column;justify-content:center;align-items:stretch}
