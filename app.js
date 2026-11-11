@@ -21,6 +21,125 @@ function releaseImages(){for(const url of imageURLs.values())URL.revokeObjectURL
 function imageURL(id){if(!imageURLs.has(id))imageURLs.set(id,newImageURL(id));return imageURLs.get(id)}
 function loaded(pack){partIndex=null;partRows=[];$('partSearchResults').replaceChildren();$('partSearchStatus').textContent='';$('morePartResults').hidden=true;releaseImages();r=createResolver(pack);$('setup').hidden=true;$('settingsPage').hidden=true;document.body.classList.remove('settings-open');$('workspace').hidden=false;$('dataStatus').textContent=`ASA ${pack.version} · ${pack.tables.vehicles.length.toLocaleString()} vehicles${pack.fixture?' · LOCAL TEST DATA':''}`;$('connection').textContent=navigator.onLine?'Ready · catalogue stored on this device':'Offline · catalogue available';renderSavedVehicles();populateGenericFilters();updateSettingsSummaries() }
 async function importPack(blob){const returnToSettings=!$('settingsPage').hidden;$('importStatus').textContent='Reading and checking your catalogue…';try{const stream=blob.stream().pipeThrough(new DecompressionStream('gzip'));const pack=JSON.parse(await new Response(stream).text());if(pack.format==='asa-group-names'){if(pack.schema!==1||!pack.names||typeof pack.names!=='object'||Array.isArray(pack.names)||!Object.entries(pack.names).every(([key,value])=>/^[A-Z0-9]+\|[0-9]{2}(\|[0-9]{3})?$/.test(key)&&typeof value==='string'&&value.length<=200))throw Error('Unsupported group names file');await storePack(pack.names,'groupNames');groupNames=pack.names;$('importStatus').textContent='Group names saved on this device.';if(r){const current=v;loaded(r.pack);if(current)select(current);}if(returnToSettings)showSettings('data');return;}if(pack.format!=='asa-personal-pack'||pack.schema!==1||!pack.tables?.vehicles?.length||!pack.tables?.part_applications||!pack.images)throw Error('This is not a supported ASA data pack.');$('importStatus').textContent='Saving catalogue on this device…';await storePack(pack);if(navigator.storage?.persist)await navigator.storage.persist();loaded(pack);if(returnToSettings)showSettings('data')}catch(e){$('importStatus').textContent='Import failed: '+e.message+'. Your previously saved catalogue is unchanged.';if(returnToSettings){$('settingsStatus').textContent=$('importStatus').textContent;showSettings('data')}}}
+$('namesfile').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)importPack(file)};$('file').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)importPack(file)};$('vehicleBackupFile').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)restoreSavedVehicles(file)};$('settings').onclick=()=>{if(!$('settingsPage').hidden)closeSettings();else showSettings()};$('setupDataPack').onclick=()=>showSettings('data');$('backSettings').onclick=closeSettings;$('backHome').onclick=()=>{$('setup').hidden=true;$('workspace').hidden=settingsReturnView!=='workspace';$('drawing').hidden=settingsReturnView!=='drawing';};
+for(const [button,tab] of [[$('appearanceTab'),'appearance'],[$('dataTab'),'data']])button.onclick=()=>selectSettingsTab(tab);
+document.querySelectorAll('[data-appearance-mode]').forEach(button=>button.onclick=()=>{const mode=button.dataset.appearanceMode;try{localStorage.setItem('asa-theme-mode',mode)}catch{}applyThemeMode(mode)});document.querySelectorAll('[data-color-theme]').forEach(button=>button.onclick=()=>{const theme=button.dataset.colorTheme;try{localStorage.setItem('asa-color-theme',theme)}catch{}applyThemeMode(getThemeMode(),theme)});applyThemeMode();if(matchMedia('(prefers-color-scheme: light)').addEventListener)matchMedia('(prefers-color-scheme: light)').addEventListener('change',()=>{if(getThemeMode()==='system')applyThemeMode('system')});
+$('settingsImportPack').onclick=()=>{ $('file').click() };$('settingsImportNames').onclick=()=>{ $('namesfile').click() };$('exportVehicles').onclick=exportSavedVehicles;$('restoreVehicles').onclick=()=>{$('vehicleBackupFile').click()};$('removeCatalogue').onclick=()=>{$('removeCatalogueDialog').showModal()};$('cancelRemoveCatalogue').onclick=()=>{$('removeCatalogueDialog').close()};$('confirmRemoveCatalogue').onclick=clearCatalogue;
+window.addEventListener('online',updateOfflineReadiness);window.addEventListener('offline',updateOfflineReadiness);
+if(['localhost','127.0.0.1'].includes(location.hostname)){$('testpack').hidden=false;$('testpack').onclick=async()=>{try{await importPack(await(await fetch('local-test-pack.asapack.gz')).blob())}catch(e){$('importStatus').textContent=e.message}}}
+const recentSearches={chassis:[],part:[]};
+function loadRecentSearches(){try{for(const kind of Object.keys(recentSearches)){const value=JSON.parse(localStorage.getItem('asa-recent-'+kind)||'[]');recentSearches[kind]=Array.isArray(value)?value.filter(x=>typeof x==='string').slice(0,6):[];}}catch{}}
+function renderRecentSearches(kind,open=false){const list=$(kind==='chassis'?'chassisRecent':'partRecent'),input=$(kind==='chassis'?'query':'partQuery');if(!list)return;const typed=input.value.trim().toUpperCase();const values=recentSearches[kind].filter(value=>!typed||value.includes(typed));list.replaceChildren(...values.map(value=>{const option=text('button',value);option.type='button';option.setAttribute('role','option');option.onclick=()=>{input.value=value;list.hidden=true;input.dispatchEvent(new Event('input',{bubbles:true}));(kind==='chassis'?$('searchForm'):$('partSearchForm')).requestSubmit();};return option;}));list.hidden=!(open&&values.length);}
+function rememberSearch(kind,value){const clean=value.trim();if(!clean)return;const key=kind==='part'?normalPartNumber(clean):clean.toUpperCase();recentSearches[kind]=[key,...recentSearches[kind].filter(x=>x.toUpperCase()!==key)].slice(0,6);try{localStorage.setItem('asa-recent-'+kind,JSON.stringify(recentSearches[kind]));}catch{}renderRecentSearches(kind);}
+loadRecentSearches();renderRecentSearches('chassis');renderRecentSearches('part');
+for(const [kind,id] of [['chassis','query'],['part','partQuery']]){const input=$(id),list=$(kind==='chassis'?'chassisRecent':'partRecent');input.addEventListener('focus',()=>renderRecentSearches(kind,true));input.addEventListener('input',()=>renderRecentSearches(kind,true));input.addEventListener('keydown',event=>{if(event.key==='Escape')list.hidden=true;});}
+document.addEventListener('pointerdown',event=>{const focused=document.activeElement;if(['query','partQuery'].includes(focused?.id)&&!event.target.closest('.searchField,.searchAction'))focused.blur();const saved=$('savedVehicleList').querySelector('.savedDropdown');if(saved?.open&&!saved.contains(event.target))saved.open=false;for(const id of ['chassisRecent','partRecent']){const list=$(id);if(!list.parentElement.contains(event.target))list.hidden=true;}});
+						77 container
+							78 text import { createResolver } from './resolver.js?v=39' ;
+						79 container
+							80 text const $ = id => document . getElementById ( id ) ; let r , v , db , scale = 1 , active , fullImageURL , settingsReturnView = "workspace" , diagramHistory = [ ] , activeSeries = [ ] , pageIndex = 0 , savedVehicles = [ ] , groupNames = { } ; const text = ( tag , value ) => { const e = document . createElement ( tag ) ; e . textContent = value ; return e } ;
+						81 container
+							82 text function openDB ( ) { return new Promise ( ( resolve , reject ) => { const req = indexedDB . open ( 'asa-pocket' , 1 ) ; req . onupgradeneeded = ( ) => req . result . createObjectStore ( 'catalogue' ) ; req . onsuccess = ( ) => resolve ( req . result ) ; req . onerror = ( ) => reject ( req . error ) } ) }
+						83 container
+							84 text function readPack ( key = 'active' ) { return new Promise ( ( resolve , reject ) => { const req = db . transaction ( 'catalogue' ) . objectStore ( 'catalogue' ) . get ( key ) ; req . onsuccess = ( ) => resolve ( req . result ) ; req . onerror = ( ) => reject ( req . error ) } ) }
+						85 container
+							86 text function storePack ( pack , key = 'active' ) { return new Promise ( ( resolve , reject ) => { const tx = db . transaction ( 'catalogue' , 'readwrite' ) ; tx . objectStore ( 'catalogue' ) . put ( pack , key ) ; tx . oncomplete = resolve ; tx . onerror = ( ) => reject ( tx . error ) ; tx . onabort = ( ) => reject ( tx . error || new Error ( 'Storage was interrupted' ) ) } ) }
+						87 container
+							88 text function deletePack ( key = 'active' ) { return new Promise ( ( resolve , reject ) => { const tx = db . transaction ( 'catalogue' , 'readwrite' ) ; tx . objectStore ( 'catalogue' ) . delete ( key ) ; tx . oncomplete = resolve ; tx . onerror = ( ) => reject ( tx . error ) ; tx . onabort = ( ) => reject ( tx . error || new Error ( 'Storage was interrupted' ) ) } ) }
+						89 container
+							90 text function getThemeMode ( ) { try { const mode = localStorage . getItem ( 'asa-theme-mode' ) ; return [ 'dark' , 'light' , 'system' ] . includes ( mode ) ? mode : 'dark' } catch { return 'dark' } }
+						91 container
+							92 text function getColorTheme ( ) { try { const theme = localStorage . getItem ( 'asa-color-theme' ) ; return [ 'classic' , 'redgrey' ] . includes ( theme ) ? theme : 'ralliart' } catch { return 'ralliart' } }
+						93 container
+							94 text function applyThemeMode ( mode = getThemeMode ( ) , colorTheme = getColorTheme ( ) ) { const resolved = mode === 'system' ? ( matchMedia ( '(prefers-color-scheme: light)' ) . matches ? 'light' : 'dark' ) : mode ; document . documentElement . dataset . theme = resolved ; document . documentElement . dataset . colorTheme = colorTheme ; const meta = document . querySelector ( 'meta[name="theme-color"]' ) ; if ( meta ) meta . content = resolved === 'light' ? '#f4f6f8' : '#15191e' ; document . querySelectorAll ( '[data-appearance-mode]' ) . forEach ( button => button . setAttribute ( 'aria-pressed' , String ( button . dataset . appearanceMode === mode ) ) ) ; document . querySelectorAll ( '[data-color-theme]' ) . forEach ( button => button . setAttribute ( 'aria-pressed' , String ( button . dataset . colorTheme === colorTheme ) ) ) ; if ( $ ( 'themeStatus' ) ) $ ( 'themeStatus' ) . textContent = mode === 'system' ? 'Following this device’s appearance setting.' : `Using  ${ mode }  appearance.` }
+						95 container
+							96 text function selectSettingsTab ( name ) { const appearance = name === 'appearance' ; $ ( 'appearanceTab' ) . setAttribute ( 'aria-selected' , String ( appearance ) ) ; $ ( 'dataTab' ) . setAttribute ( 'aria-selected' , String ( ! appearance ) ) ; $ ( 'appearancePanel' ) . hidden =! appearance ; $ ( 'dataPanel' ) . hidden = appearance ; }
+						97 container
+							98 text function showSettings ( tab = 'appearance' ) { if ( $ ( 'settingsPage' ) . hidden ) { settingsReturnView =! $ ( 'setup' ) . hidden ? 'setup' :! $ ( 'drawing' ) . hidden ? 'drawing' : 'workspace' ; } $ ( 'setup' ) . hidden = true ; $ ( 'workspace' ) . hidden = true ; $ ( 'drawing' ) . hidden = true ; $ ( 'settingsPage' ) . hidden = false ; document . body . classList . add ( 'settings-open' ) ; selectSettingsTab ( tab ) ; applyThemeMode ( ) ; updateSettingsSummaries ( ) }
+						99 container
+							100 text function closeSettings ( ) { $ ( 'settingsPage' ) . hidden = true ; document . body . classList . remove ( 'settings-open' ) ; $ ( 'setup' ) . hidden = settingsReturnView !== 'setup' ; $ ( 'workspace' ) . hidden = settingsReturnView !== 'workspace' ; $ ( 'drawing' ) . hidden = settingsReturnView !== 'drawing' ;  }
+						101 container
+							102 text function updateSettingsSummaries ( ) { if ( ! $ ( 'settingsPackSummary' ) ) return ; $ ( 'settingsPackSummary' ) . textContent = r ? `ASA  ${ r . pack . version }  ·  ${ r . pack . tables . vehicles . length . toLocaleString ( ) }  vehicles · Stored on this device` : 'No Chassis Data Pack Imported on this device.' ; $ ( 'settingsGroupSummary' ) . textContent = Object . keys ( groupNames ) . length ? ` ${ Object . keys ( groupNames ) . length . toLocaleString ( ) }  group names installed on this device.` : 'Optional file for readable group names; none imported yet.' ; $ ( 'savedVehicleBackupSummary' ) . textContent = ` ${ savedVehicles . length }  of 8 saved vehicles · Stored on this device` ; $ ( 'exportVehicles' ) . disabled =! savedVehicles . length ; $ ( 'removeCatalogue' ) . disabled =! r ; updateOfflineReadiness ( ) }
+						103 container
+							104 text async function updateOfflineReadiness ( ) { const output = $ ( 'offlineReadiness' ) ; if ( ! output ) return ; let shellCached = false ; try { shellCached = 'caches' in window && ( await caches . keys ( ) ) . some ( key => key . startsWith ( 'asa-pocket-shell-' ) ) } catch { } const catalogueStored =!! r ; output . textContent = `App shell:  ${ shellCached ? 'installed' : 'not confirmed' }  · Catalogue:  ${ catalogueStored ? 'stored on this device' : 'not imported' }  ·  ${ navigator . onLine ? 'Online' : 'Offline' } ` }
+						105 container
+							106 text async function exportSavedVehicles ( ) { if ( ! savedVehicles . length ) { $ ( 'backupStatus' ) . textContent = 'There are no saved vehicles to export.' ; return } const data = { format : 'asa-saved-vehicles' , schema : 1 , vehicles : savedVehicles } ; const url = URL . createObjectURL ( new Blob ( [ JSON . stringify ( data , null , 2 ) ] , { type : 'application/json' } ) ) ; const link = document . createElement ( 'a' ) ; link . href = url ; link . download = 'asa-pocket-saved-vehicles.json' ; link . click ( ) ; setTimeout ( ( ) => URL . revokeObjectURL ( url ) , 1000 ) ; $ ( 'backupStatus' ) . textContent = 'Backup exported. Keep the file somewhere safe.' }
+						107 container
+							108 text async function restoreSavedVehicles ( file ) { $ ( 'backupStatus' ) . textContent = 'Checking saved vehicle backup…' ; try { if ( file . size > 65536 ) throw Error ( 'This backup file is larger than expected.' ) ; const backup = JSON . parse ( await file . text ( ) ) ; if ( backup ?. format !== 'asa-saved-vehicles' || backup . schema !== 1 ||! Array . isArray ( backup . vehicles ) || backup . vehicles . length > 8 ) throw Error ( 'This is not a supported saved vehicle backup.' ) ; const incoming = [ ] ; const seen = new Set ; for ( const item of backup . vehicles ) { if ( ! item || typeof item . chassis !== 'string' || typeof item . nickname !== 'string' ) throw Error ( 'The backup contains an invalid vehicle.' ) ; const chassis = item . chassis . trim ( ) . toUpperCase ( ) ; if ( ! /^[A-Z0-9]+-[0-9]{7}$/ . test ( chassis ) || item . nickname . length > 80 || seen . has ( chassis ) ) throw Error ( 'The backup contains an invalid or duplicate vehicle.' ) ; seen . add ( chassis ) ; incoming . push ( { chassis , nickname : item . nickname . trim ( ) . slice ( 0 , 80 ) || chassis } ) } const merged = [ ... savedVehicles ] ; for ( const item of incoming ) if ( ! merged . some ( saved => saved . chassis === item . chassis ) ) merged . push ( item ) ; if ( merged . length > 8 ) throw Error ( 'There is not room for all vehicles in this backup. Remove a saved vehicle, then restore again.' ) ; await storePack ( merged , 'savedVehicles' ) ; savedVehicles = merged ; renderSavedVehicles ( ) ; updateSettingsSummaries ( ) ; $ ( 'backupStatus' ) . textContent = `Backup restored.  ${ incoming . length }  vehicle ${ incoming . length === 1 ? '' : 's' }  checked; existing saved names were kept.` } catch ( error ) { $ ( 'backupStatus' ) . textContent = `Restore failed:  ${ error . message }  Your saved vehicles are unchanged.` } }
+						109 container
+							110 text function clearCatalogue ( ) { return deletePack ( ) . then ( ( ) => { r = null ; v = null ; active = null ; diagramHistory = [ ] ; activeSeries = [ ] ; pageIndex = 0 ; catalogueDiagrams = [ ] ; browseCategory = null ; browseSubgroup = null ; browseReturnCategory = null ; browsePositions . clear ( ) ; partIndex = null ; partRows = [ ] ; partOffset = 0 ; releaseImages ( ) ; $ ( 'results' ) . replaceChildren ( ) ; $ ( 'vehicle' ) . replaceChildren ( ) ; $ ( 'groups' ) . replaceChildren ( ) ; $ ( 'partSearchResults' ) . replaceChildren ( ) ; $ ( 'query' ) . value = '' ; $ ( 'partQuery' ) . value = '' ; $ ( 'workspace' ) . hidden = true ; $ ( 'drawing' ) . hidden = true ; $ ( 'setup' ) . hidden = true ; $ ( 'settingsPage' ) . hidden = false ; document . body . classList . add ( 'settings-open' ) ; settingsReturnView = 'setup' ; $ ( 'dataStatus' ) . textContent = 'No Chassis Data Pack Imported' ; $ ( 'connection' ) . textContent = 'Personal offline catalogue' ; $ ( 'removeCatalogueDialog' ) . close ( ) ; updateSettingsSummaries ( ) ; $ ( 'settingsStatus' ) . textContent = 'Chassis data pack removed from this device. Saved vehicles and group names were kept.' } ) . catch ( error => { $ ( 'settingsStatus' ) . textContent = `Could not remove the chassis data pack:  ${ error . message } ` ; $ ( 'removeCatalogueDialog' ) . close ( ) } ) }
+						111 container
+							112 text const imageURLs = new Map ;
+						113 container
+							114 text function newImageURL ( id ) { const raw = atob ( r . pack . images [ id ] ) ; const bytes = Uint8Array . from ( raw , c => c . charCodeAt ( 0 ) ) ; return URL . createObjectURL ( new Blob ( [ bytes ] , { type : 'image/png' } ) ) }
+						115 container
+							116 text function releaseImages ( ) { for ( const url of imageURLs . values ( ) ) URL . revokeObjectURL ( url ) ; imageURLs . clear ( ) ; if ( fullImageURL ) { URL . revokeObjectURL ( fullImageURL ) ; fullImageURL = null } }
+						117 container
+							118 text function imageURL ( id ) { if ( ! imageURLs . has ( id ) ) imageURLs . set ( id , newImageURL ( id ) ) ; return imageURLs . get ( id ) }
+						119 container
+							120 text function loaded ( pack ) { partIndex = null ; partRows = [ ] ; $ ( 'partSearchResults' ) . replaceChildren ( ) ; $ ( 'partSearchStatus' ) . textContent = '' ; $ ( 'morePartResults' ) . hidden = true ; releaseImages ( ) ; r = createResolver ( pack ) ; $ ( 'setup' ) . hidden = true ; $ ( 'settingsPage' ) . hidden = true ; document . body . classList . remove ( 'settings-open' ) ; $ ( 'workspace' ) . hidden = false ; $ ( 'dataStatus' ) . textContent = `ASA  ${ pack . version }  ·  ${ pack . tables . vehicles . length . toLocaleString ( ) }  vehicles ${ pack . fixture ? ' · LOCAL TEST DATA' : '' } ` ; $ ( 'connection' ) . textContent = navigator . onLine ? 'Ready · catalogue stored on this device' : 'Offline · catalogue available' ; renderSavedVehicles ( ) ; populateGenericFilters ( ) ; updateSettingsSummaries ( ) }
+						121 container
+							122 text async function importPack ( blob ) { const returnToSettings =! $ ( 'settingsPage' ) . hidden ; $ ( 'importStatus' ) . textContent = 'Reading and checking your catalogue…' ; try { const stream = blob . stream ( ) . pipeThrough ( new DecompressionStream ( 'gzip' ) ) ; const pack = JSON . parse ( await new Response ( stream ) . text ( ) ) ; if ( pack . format === 'asa-group-names' ) { if ( pack . schema !== 1 ||! pack . names || typeof pack . names !== 'object' || Array . isArray ( pack . names ) ||! Object . entries ( pack . names ) . every ( ( [ key , value ] ) => /^[A-Z0-9]+\|[0-9]{2}(\|[0-9]{3})?$/ . test ( key ) && typeof value === 'string' && value . length <= 200 ) ) throw Error ( 'Unsupported group names file' ) ; await storePack ( pack . names , 'groupNames' ) ; groupNames = pack . names ; $ ( 'importStatus' ) . textContent = 'Group names saved on this device.' ; if ( r ) { const current = v ; loaded ( r . pack ) ; if ( current ) select ( current ) ; } if ( returnToSettings ) showSettings ( 'data' ) ; return ; } if ( pack . format !== 'asa-personal-pack' || pack . schema !== 1 ||! pack . tables ?. vehicles ?. length ||! pack . tables ?. part_applications ||! pack . images ) throw Error ( 'This is not a supported ASA data pack.' ) ; $ ( 'importStatus' ) . textContent = 'Saving catalogue on this device…' ; await storePack ( pack ) ; if ( navigator . storage ?. persist ) await navigator . storage . persist ( ) ; loaded ( pack ) ; if ( returnToSettings ) showSettings ( 'data' ) } catch ( e ) { $ ( 'importStatus' ) . textContent = 'Import failed: ' + e . message + '. Your previously saved catalogue is unchanged.' ; if ( returnToSettings ) { $ ( 'settingsStatus' ) . textContent = $ ( 'importStatus' ) . textContent ; showSettings ( 'data' ) } } }
+						123 container
+							124 text $ ( 'namesfile' ) . onchange = e => { const file = e . target . files [ 0 ] ; e . target . value = '' ; if ( file ) importPack ( file ) } ; $ ( 'file' ) . onchange = e => { const file = e . target . files [ 0 ] ; e . target . value = '' ; if ( file ) importPack ( file ) } ; $ ( 'vehicleBackupFile' ) . onchange = e => { const file = e . target . files [ 0 ] ; e . target . value = '' ; if ( file ) restoreSavedVehicles ( file ) } ; $ ( 'settings' ) . onclick = ( ) => { if ( ! $ ( 'settingsPage' ) . hidden ) closeSettings ( ) ; else showSettings ( ) } ; $ ( 'backSettings' ) . onclick = closeSettings ; $ ( 'backHome' ) . onclick = ( ) => { $ ( 'setup' ) . hidden = true ; $ ( 'workspace' ) . hidden = settingsReturnView !== 'workspace' ; $ ( 'drawing' ) . hidden = settingsReturnView !== 'drawing' ; } ;
+						125 container
+							126 text for ( const [ button , tab ] of [ [ $ ( 'appearanceTab' ) , 'appearance' ] , [ $ ( 'dataTab' ) , 'data' ] ] ) button . onclick = ( ) => selectSettingsTab ( tab ) ;
+						127 container
+							128 text document . querySelectorAll ( '[data-appearance-mode]' ) . forEach ( button => button . onclick = ( ) => { const mode = button . dataset . appearanceMode ; try { localStorage . setItem ( 'asa-theme-mode' , mode ) } catch { } applyThemeMode ( mode ) } ) ; document . querySelectorAll ( '[data-color-theme]' ) . forEach ( button => button . onclick = ( ) => { const theme = button . dataset . colorTheme ; try { localStorage . setItem ( 'asa-color-theme' , theme ) } catch { } applyThemeMode ( getThemeMode ( ) , theme ) } ) ; applyThemeMode ( ) ; if ( matchMedia ( '(prefers-color-scheme: light)' ) . addEventListener ) matchMedia ( '(prefers-color-scheme: light)' ) . addEventListener ( 'change' , ( ) => { if ( getThemeMode ( ) === 'system' ) applyThemeMode ( 'system' ) } ) ;
+						129 container
+							130 text $ ( 'settingsImportPack' ) . onclick = ( ) => { $ ( 'file' ) . click ( ) } ; $ ( 'settingsImportNames' ) . onclick = ( ) => { $ ( 'namesfile' ) . click ( ) } ; $ ( 'exportVehicles' ) . onclick = exportSavedVehicles ; $ ( 'restoreVehicles' ) . onclick = ( ) => { $ ( 'vehicleBackupFile' ) . click ( ) } ; $ ( 'removeCatalogue' ) . onclick = ( ) => { $ ( 'removeCatalogueDialog' ) . showModal ( ) } ; $ ( 'cancelRemoveCatalogue' ) . onclick = ( ) => { $ ( 'removeCatalogueDialog' ) . close ( ) } ; $ ( 'confirmRemoveCatalogue' ) . onclick = clearCatalogue ;
+						131 container
+							132 text window . addEventListener ( 'online' , updateOfflineReadiness ) ; window . addEventListener ( 'offline' , updateOfflineReadiness ) ;
+						133 container
+							134 text if ( [ 'localhost' , '127.0.0.1' ] . includes ( location . hostname ) ) { $ ( 'testpack' ) . hidden = false ; $ ( 'testpack' ) . onclick = async ( ) => { try { await importPack ( await ( await fetch ( 'local-test-pack.asapack.gz' ) ) . blob ( ) ) } catch ( e ) { $ ( 'importStatus' ) . textContent = e . message } } }
+						135 container
+							136 text const recentSearches = { chassis : [ ] , part : [ ] } ;
+						137 container
+							138 text function loadRecentSearches ( ) { try { for ( const kind of Object . keys ( recentSearches ) ) { const value = JSON . parse ( localStorage . getItem ( 'asa-recent-' + kind ) || '[]' ) ; recentSearches [ kind ] = Array . isArray ( value ) ? value . filter ( x => typeof x === 'string' ) . slice ( 0 , 6 ) : [ ] ; } } catch { } }
+						139 container
+							140 text function renderRecentSearches ( kind , open = false ) { const list = $ ( kind === 'chassis' ? 'chassisRecent' : 'partRecent' ) , input = $ ( kind === 'chassis' ? 'query' : 'partQuery' ) ; if ( ! list ) return ; const typed = input . value . trim ( ) . toUpperCase ( ) ; const values = recentSearches [ kind ] . filter ( value =>! typed || value . includes ( typed ) ) ; list . replaceChildren ( ... values . map ( value => { const option = text ( 'button' , value ) ; option . type = 'button' ; option . setAttribute ( 'role' , 'option' ) ; option . onclick = ( ) => { input . value = value ; list . hidden = true ; input . dispatchEvent ( new Event ( 'input' , { bubbles : true } ) ) ; ( kind === 'chassis' ? $ ( 'searchForm' ) : $ ( 'partSearchForm' ) ) . requestSubmit ( ) ; } ; return option ; } ) ) ; list . hidden =! ( open && values . length ) ; }
+						141 container
+							142 text function rememberSearch ( kind , value ) { const clean = value . trim ( ) ; if ( ! clean ) return ; const key = kind === 'part' ? normalPartNumber ( clean ) : clean . toUpperCase ( ) ; recentSearches [ kind ] = [ key ,... recentSearches [ kind ] . filter ( x => x . toUpperCase ( ) !== key ) ] . slice ( 0 , 6 ) ; try { localStorage . setItem ( 'asa-recent-' + kind , JSON . stringify ( recentSearches [ kind ] ) ) ; } catch { } renderRecentSearches ( kind ) ; }
+						143 container
+							144 text loadRecentSearches ( ) ; renderRecentSearches ( 'chassis' ) ; renderRecentSearches ( 'part' ) ;
+						145 container
+							146 text for ( const [ kind , id ] of [ [ 'chassis' , 'query' ] , [ 'part' , 'partQuery' ] ] ) { const input = $ ( id ) , list = $ ( kind === 'chassis' ? 'chassisRecent' : 'partRecent' ) ; input . addEventListener ( 'focus' , ( ) => renderRecentSearches ( kind , true ) ) ; input . addEventListener ( 'input' , ( ) => renderRecentSearches ( kind , true ) ) ; input . addEventListener ( 'keydown' , event => { if ( event . key === 'Escape' ) list . hidden = true ; } ) ; }
+						147 container
+							148 text document . addEventListener ( 'pointerdown' , event => { const focused = document . activeElement ; if ( [ 'query' , 'partQuery' ] . includes ( focused ?. id ) &&! event . target . closest ( '.searchField,.searchAction' ) ) focused . blur ( ) ; const saved = $ ( 'savedVehicleList' ) . querySelector ( '.savedDropdown' ) ; if ( saved ?. open &&! saved . contains ( event . target ) ) saved . open = false ; for ( const id of [ 'chassisRecent' , 'partRecent' ] ) { const list = $ ( id ) ; if ( ! list . parentElement . contains ( event . target ) ) list . hidden = true ; } } ) ;
+				149 container focus-trap-help-panel
+					150 text Use 
+					151 text Control + Shift + m
+					152 text  to toggle the 
+					153 text tab
+					154 text  key moving focus. Alternatively, use 
+					155 text esc
+					156 text  then 
+					157 text tab
+					158 text  to move to the next interactive element on the page.
+
+The focused UI element is 76 text entry area (settable) Editing app.js file contents Use Control + Shift + m to toggle the tab key moving focus. Alternatively, use esc then tab to move to the next interactive element on the page., Value: import {createResolver} from './resolver.js?v=39';
+const $=id=>document.getElementById(id);let r,v,db,scale=1,active,fullImageURL,settingsReturnView="workspace",diagramHistory=[],activeSeries=[],pageIndex=0,savedVehicles=[],groupNames={};const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=value;return e};
+function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('asa-pocket',1);req.onupgradeneeded=()=>req.result.createObjectStore('catalogue');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+function readPack(key='active'){return new Promise((resolve,reject)=>{const req=db.transaction('catalogue').objectStore('catalogue').get(key);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+function storePack(pack,key='active'){return new Promise((resolve,reject)=>{const tx=db.transaction('catalogue','readwrite');tx.objectStore('catalogue').put(pack,key);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error('Storage was interrupted'))})}
+function deletePack(key='active'){return new Promise((resolve,reject)=>{const tx=db.transaction('catalogue','readwrite');tx.objectStore('catalogue').delete(key);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error('Storage was interrupted'))})}
+function getThemeMode(){try{const mode=localStorage.getItem('asa-theme-mode');return['dark','light','system'].includes(mode)?mode:'dark'}catch{return'dark'}}
+function getColorTheme(){try{const theme=localStorage.getItem('asa-color-theme');return['classic','redgrey'].includes(theme)?theme:'ralliart'}catch{return'ralliart'}}
+function applyThemeMode(mode=getThemeMode(),colorTheme=getColorTheme()){const resolved=mode==='system'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):mode;document.documentElement.dataset.theme=resolved;document.documentElement.dataset.colorTheme=colorTheme;const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=resolved==='light'?'#f4f6f8':'#15191e';document.querySelectorAll('[data-appearance-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.appearanceMode===mode)));document.querySelectorAll('[data-color-theme]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.colorTheme===colorTheme)));if($('themeStatus'))$('themeStatus').textContent=mode==='system'?'Following this device’s appearance setting.':`Using ${mode} appearance.`}
+function selectSettingsTab(name){const appearance=name==='appearance';$('appearanceTab').setAttribute('aria-selected',String(appearance));$('dataTab').setAttribute('aria-selected',String(!appearance));$('appearancePanel').hidden=!appearance;$('dataPanel').hidden=appearance;}
+function showSettings(tab='appearance'){if($('settingsPage').hidden){settingsReturnView=!$('setup').hidden?'setup':!$('drawing').hidden?'drawing':'workspace';}$('setup').hidden=true;$('workspace').hidden=true;$('drawing').hidden=true;$('settingsPage').hidden=false;document.body.classList.add('settings-open');selectSettingsTab(tab);applyThemeMode();updateSettingsSummaries()}
+function closeSettings(){ $('settingsPage').hidden=true;document.body.classList.remove('settings-open');$('setup').hidden=settingsReturnView!=='setup';$('workspace').hidden=settingsReturnView!=='workspace';$('drawing').hidden=settingsReturnView!=='drawing'; }
+function updateSettingsSummaries(){if(!$('settingsPackSummary'))return;$('settingsPackSummary').textContent=r?`ASA ${r.pack.version} · ${r.pack.tables.vehicles.length.toLocaleString()} vehicles · Stored on this device`:'No Chassis Data Pack Imported on this device.';$('settingsGroupSummary').textContent=Object.keys(groupNames).length?`${Object.keys(groupNames).length.toLocaleString()} group names installed on this device.`:'Optional file for readable group names; none imported yet.';$('savedVehicleBackupSummary').textContent=`${savedVehicles.length} of 8 saved vehicles · Stored on this device`;$('exportVehicles').disabled=!savedVehicles.length;$('removeCatalogue').disabled=!r;updateOfflineReadiness()}
+async function updateOfflineReadiness(){const output=$('offlineReadiness');if(!output)return;let shellCached=false;try{shellCached='caches'in window&&(await caches.keys()).some(key=>key.startsWith('asa-pocket-shell-'))}catch{}const catalogueStored=!!r;output.textContent=`App shell: ${shellCached?'installed':'not confirmed'} · Catalogue: ${catalogueStored?'stored on this device':'not imported'} · ${navigator.onLine?'Online':'Offline'}`}
+async function exportSavedVehicles(){if(!savedVehicles.length){$('backupStatus').textContent='There are no saved vehicles to export.';return}const data={format:'asa-saved-vehicles',schema:1,vehicles:savedVehicles};const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download='asa-pocket-saved-vehicles.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);$('backupStatus').textContent='Backup exported. Keep the file somewhere safe.'}
+async function restoreSavedVehicles(file){$('backupStatus').textContent='Checking saved vehicle backup…';try{if(file.size>65536)throw Error('This backup file is larger than expected.');const backup=JSON.parse(await file.text());if(backup?.format!=='asa-saved-vehicles'||backup.schema!==1||!Array.isArray(backup.vehicles)||backup.vehicles.length>8)throw Error('This is not a supported saved vehicle backup.');const incoming=[];const seen=new Set;for(const item of backup.vehicles){if(!item||typeof item.chassis!=='string'||typeof item.nickname!=='string')throw Error('The backup contains an invalid vehicle.');const chassis=item.chassis.trim().toUpperCase();if(!/^[A-Z0-9]+-[0-9]{7}$/.test(chassis)||item.nickname.length>80||seen.has(chassis))throw Error('The backup contains an invalid or duplicate vehicle.');seen.add(chassis);incoming.push({chassis,nickname:item.nickname.trim().slice(0,80)||chassis})}const merged=[...savedVehicles];for(const item of incoming)if(!merged.some(saved=>saved.chassis===item.chassis))merged.push(item);if(merged.length>8)throw Error('There is not room for all vehicles in this backup. Remove a saved vehicle, then restore again.');await storePack(merged,'savedVehicles');savedVehicles=merged;renderSavedVehicles();updateSettingsSummaries();$('backupStatus').textContent=`Backup restored. ${incoming.length} vehicle${incoming.length===1?'':'s'} checked; existing saved names were kept.`}catch(error){$('backupStatus').textContent=`Restore failed: ${error.message} Your saved vehicles are unchanged.`}}
+function clearCatalogue(){return deletePack().then(()=>{r=null;v=null;active=null;diagramHistory=[];activeSeries=[];pageIndex=0;catalogueDiagrams=[];browseCategory=null;browseSubgroup=null;browseReturnCategory=null;browsePositions.clear();partIndex=null;partRows=[];partOffset=0;releaseImages();$('results').replaceChildren();$('vehicle').replaceChildren();$('groups').replaceChildren();$('partSearchResults').replaceChildren();$('query').value='';$('partQuery').value='';$('workspace').hidden=true;$('drawing').hidden=true;$('setup').hidden=true;$('settingsPage').hidden=false;document.body.classList.add('settings-open');settingsReturnView='setup';$('dataStatus').textContent='No Chassis Data Pack Imported';$('connection').textContent='Personal offline catalogue';$('removeCatalogueDialog').close();updateSettingsSummaries();$('settingsStatus').textContent='Chassis data pack removed from this device. Saved vehicles and group names were kept.'}).catch(error=>{$('settingsStatus').textContent=`Could not remove the chassis data pack: ${error.message}`;$('removeCatalogueDialog').close()})}
+const imageURLs=new Map;
+function newImageURL(id){const raw=atob(r.pack.images[id]);const bytes=Uint8Array.from(raw,c=>c.charCodeAt(0));return URL.createObjectURL(new Blob([bytes],{type:'image/png'}))}
+function releaseImages(){for(const url of imageURLs.values())URL.revokeObjectURL(url);imageURLs.clear();if(fullImageURL){URL.revokeObjectURL(fullImageURL);fullImageURL=null}}
+function imageURL(id){if(!imageURLs.has(id))imageURLs.set(id,newImageURL(id));return imageURLs.get(id)}
+function loaded(pack){partIndex=null;partRows=[];$('partSearchResults').replaceChildren();$('partSearchStatus').textContent='';$('morePartResults').hidden=true;releaseImages();r=createResolver(pack);$('setup').hidden=true;$('settingsPage').hidden=true;document.body.classList.remove('settings-open');$('workspace').hidden=false;$('dataStatus').textContent=`ASA ${pack.version} · ${pack.tables.vehicles.length.toLocaleString()} vehicles${pack.fixture?' · LOCAL TEST DATA':''}`;$('connection').textContent=navigator.onLine?'Ready · catalogue stored on this device':'Offline · catalogue available';renderSavedVehicles();populateGenericFilters();updateSettingsSummaries() }
+async function importPack(blob){const returnToSettings=!$('settingsPage').hidden;$('importStatus').textContent='Reading and checking your catalogue…';try{const stream=blob.stream().pipeThrough(new DecompressionStream('gzip'));const pack=JSON.parse(await new Response(stream).text());if(pack.format==='asa-group-names'){if(pack.schema!==1||!pack.names||typeof pack.names!=='object'||Array.isArray(pack.names)||!Object.entries(pack.names).every(([key,value])=>/^[A-Z0-9]+\|[0-9]{2}(\|[0-9]{3})?$/.test(key)&&typeof value==='string'&&value.length<=200))throw Error('Unsupported group names file');await storePack(pack.names,'groupNames');groupNames=pack.names;$('importStatus').textContent='Group names saved on this device.';if(r){const current=v;loaded(r.pack);if(current)select(current);}if(returnToSettings)showSettings('data');return;}if(pack.format!=='asa-personal-pack'||pack.schema!==1||!pack.tables?.vehicles?.length||!pack.tables?.part_applications||!pack.images)throw Error('This is not a supported ASA data pack.');$('importStatus').textContent='Saving catalogue on this device…';await storePack(pack);if(navigator.storage?.persist)await navigator.storage.persist();loaded(pack);if(returnToSettings)showSettings('data')}catch(e){$('importStatus').textContent='Import failed: '+e.message+'. Your previously saved catalogue is unchanged.';if(returnToSettings){$('settingsStatus').textContent=$('importStatus').textContent;showSettings('data')}}}
 $('namesfile').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)importPack(file)};$('file').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)importPack(file)};$('vehicleBackupFile').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)restoreSavedVehicles(file)};$('settings').onclick=()=>{if(!$('settingsPage').hidden)closeSettings();else showSettings()};$('backSettings').onclick=closeSettings;$('backHome').onclick=()=>{$('setup').hidden=true;$('workspace').hidden=settingsReturnView!=='workspace';$('drawing').hidden=settingsReturnView!=='drawing';};
 for(const [button,tab] of [[$('appearanceTab'),'appearance'],[$('dataTab'),'data']])button.onclick=()=>selectSettingsTab(tab);
 document.querySelectorAll('[data-appearance-mode]').forEach(button=>button.onclick=()=>{const mode=button.dataset.appearanceMode;try{localStorage.setItem('asa-theme-mode',mode)}catch{}applyThemeMode(mode)});document.querySelectorAll('[data-color-theme]').forEach(button=>button.onclick=()=>{const theme=button.dataset.colorTheme;try{localStorage.setItem('asa-color-theme',theme)}catch{}applyThemeMode(getThemeMode(),theme)});applyThemeMode();if(matchMedia('(prefers-color-scheme: light)').addEventListener)matchMedia('(prefers-color-scheme: light)').addEventListener('change',()=>{if(getThemeMode()==='system')applyThemeMode('system')});
@@ -34,272 +153,3 @@ function rememberSearch(kind,value){const clean=value.trim();if(!clean)return;co
 loadRecentSearches();renderRecentSearches('chassis');renderRecentSearches('part');
 for(const [kind,id] of [['chassis','query'],['part','partQuery']]){const input=$(id),list=$(kind==='chassis'?'chassisRecent':'partRecent');input.addEventListener('focus',()=>renderRecentSearches(kind,true));input.addEventListener('input',()=>renderRecentSearches(kind,true));input.addEventListener('keydown',event=>{if(event.key==='Escape')list.hidden=true;});}
 document.addEventListener('pointerdown',event=>{const focused=document.activeElement;if(['query','partQuery'].includes(focused?.id)&&!event.target.closest('.searchField,.searchAction'))focused.blur();const saved=$('savedVehicleList').querySelector('.savedDropdown');if(saved?.open&&!saved.contains(event.target))saved.open=false;for(const id of ['chassisRecent','partRecent']){const list=$(id);if(!list.parentElement.contains(event.target))list.hidden=true;}});
-$('searchForm').onsubmit=e=>{e.preventDefault();$('chassisRecent').hidden=true;clearPartSearch();$('results').replaceChildren();const query=$('query').value.trim();if(!query){v=null;$('vehicle').replaceChildren();$('groups').replaceChildren();return;}rememberSearch('chassis',query);const found=r.search(query);if(!found.length)$('results').append(text('p','No matching chassis in this catalogue.'));for(const item of found){const b=text('button',`${item.model}-${item.serial_number} · ${item.classification}`);b.className='result';b.onclick=()=>select(item);$('results').append(b)}if(found.length===1)select(found[0])};
-function select(item,preserveNavigation=false){if(!preserveNavigation)clearPartSearch();if(!item.generic&&!preserveNavigation)clearGenericFields();const detailsWasOpen=preserveNavigation&&document.getElementById('vehicle').querySelector('details')?.open;diagramHistory=[];activeSeries=[];pageIndex=0;if(!preserveNavigation){browsePositions.clear();browseReturnCategory=null;browseCategory=null;browseSubgroup=null;}$('partSearchResults').replaceChildren();$('partSearchStatus').textContent='';$('morePartResults').hidden=true;releaseImages();v=item;$('results').replaceChildren();$('drawing').hidden=true;$('vehicle').replaceChildren();$('groups').replaceChildren();const card=document.createElement('article');card.className='card';const titleRow=document.createElement('div');titleRow.className='chassisTitleRow';titleRow.append(text('h2',`${v.model}-${v.serial_number}`));const resetButton=text('button','Clear');resetButton.className='resetButton';resetButton.setAttribute('aria-label','Reset chassis search');resetButton.onclick=resetSearch;titleRow.append(resetButton);card.append(titleRow);const meta=document.createElement('div');meta.className='meta';for(const [k,value]of [['Model',v.type||v.model],['Classification',v.classification],['Production',v.production_period??'Unknown'],['OPC',v.opc],['Exterior code',v.exterior||'Not decoded'],['Interior code',v.interior||'Not decoded']]){const f=document.createElement('div');f.append(text('small',k),text('span',value));meta.append(f)}const details=document.createElement('details');details.open=!!detailsWasOpen;const summary=text('summary','Vehicle details');summary.hidden=true;details.append(summary,meta);card.append(details);const o=text('p',r.unknown(v)?'Factory options require verification. Option-dependent parts are candidates.':'Factory options: '+([...r.options(v)].join(' · ')||'No Option IDs in matched package'));o.className=r.unknown(v)?'warning':'options';details.append(o);const saveButton=text('button',savedVehicles.some(x=>x.chassis===chassisKey(v))?'Edit saved vehicle':'Save vehicle');saveButton.id='saveCurrentVehicle';saveButton.onclick=openSaveVehicle;const detailsButton=text('button','Vehicle details');detailsButton.setAttribute('aria-expanded',String(details.open));detailsButton.onclick=()=>{details.open=!details.open;detailsButton.setAttribute('aria-expanded',String(details.open));};const actions=document.createElement('div');actions.className='vehicleActions';actions.append(detailsButton,saveButton);card.append(actions);if(!v.generic)$('vehicle').append(card);const seenIllustrations=new Set;catalogueDiagrams=r.diagrams(v).filter(d=>{if(seenIllustrations.has(d.illustration_id))return false;seenIllustrations.add(d.illustration_id);return true;}).map(d=>{const code=d.illustration_id.match(/^\d(\d{2})_(\d{3})/);return code?{...d,main_group:code[1],sub_group:code[2]}:d;});renderCatalogueBrowser();}
-
-
-const genericFields=['model','classification','opc','exterior','interior'];
-function genericSummary(filters){return Object.entries(filters).filter(([,value])=>value).map(([key,value])=>(key==='opc'?'Option package':key)+': '+value).join(' · ');}
-function populateGenericFilters(changed=null){
- if(changed==='model')for(const key of genericFields.filter(key=>key!=='model'))$('generic_'+key).value='';
- const values=Object.fromEntries(genericFields.map(key=>[key,$('generic_'+key).value]));
- for(const key of genericFields){
-  const field=$('generic_'+key),rows=r.pack.tables.vehicles.filter(row=>genericFields.every(other=>other===key||!values[other]||row[other]===values[other]));
-  const available=new Set(rows.map(row=>row[key]).filter(Boolean));
-  if(key==='model'&&!values.classification&&!values.opc&&!values.exterior&&!values.interior)for(const row of r.pack.tables.model_illustrations)available.add(row.model);
-  if(key==='classification'&&!values.opc&&!values.exterior&&!values.interior)for(const row of r.pack.tables.part_applications.filter(row=>!values.model||row.model===values.model))for(const cls of (row.classifications||'').split(/[^A-Z0-9]+/).filter(Boolean))available.add(cls);
-  field.replaceChildren();const any=text('option','Any');any.value='';field.append(any);
-  for(const value of [...available].sort()){const option=text('option',value);option.value=value;field.append(option);}
-  if(available.has(values[key]))field.value=values[key];
- }
-}
-function clearGenericFields(){for(const key of genericFields)$('generic_'+key).value='';$('genericStatus').textContent='';if(r)populateGenericFilters();}
-function resetSearch(){
- releaseImages();v=null;active=null;diagramHistory=[];activeSeries=[];pageIndex=0;catalogueDiagrams=[];browseCategory=null;browseSubgroup=null;browseReturnCategory=null;browsePositions.clear();
- $('query').value='';clearGenericFields();$('partQuery').value='';partRows=[];partOffset=0;
- for(const id of ['results','vehicle','groups','partSearchResults'])$(id).replaceChildren();
- $('partSearchStatus').textContent='';$('savedVehicleStatus').textContent='';$('morePartResults').hidden=true;
- $('drawing').hidden=true;$('workspace').hidden=false;renderSavedVehicles();
-}
-$('resetGeneric').onclick=resetSearch;
-for(const key of genericFields)$('generic_'+key).onchange=()=>populateGenericFilters(key);
-$('genericSearch').onsubmit=e=>{
- e.preventDefault();clearPartSearch();const filters=Object.fromEntries(genericFields.map(key=>[key,$('generic_'+key).value]));
- if(!Object.values(filters).some(Boolean)){$('genericStatus').textContent='Choose a model or another filter first.';return;}
- $('query').value='';$('savedVehicleStatus').textContent='';$('genericStatus').textContent=genericSummary(filters)+' · All production periods and factory option possibilities.';
- select({generic:true,filters,model:filters.model||'',classification:filters.classification||'',exterior:filters.exterior||'',interior:filters.interior||'',opc:filters.opc||'',option_ids:'',production_period:null});
- $('groups').scrollIntoView({block:'start'});
-};
-$('query').addEventListener('focus',()=>{$('genericBrowse').open=false;});
-$('query').addEventListener('input',()=>{if(!$('query').value.trim()){v=null;$('vehicle').replaceChildren();$('groups').replaceChildren();}});
-
-function draw(d,series=null,index=0,position=null){
- const restorePosition=()=>{if(!position)return;$('viewport').scrollTop=position.top;$('viewport').scrollLeft=position.left;window.scrollTo(position.x,position.y);};
- if(series){activeSeries=series;pageIndex=index;}
- $('previousPage').disabled=pageIndex===0;$('nextPage').disabled=pageIndex>=activeSeries.length-1;$('pageNavigation').hidden=activeSeries.length<2;$('pageCount').textContent='Diagram '+(pageIndex+1)+' of '+activeSeries.length;
- $('referenceNotice').hidden=!d.referenceOnly;
- $('referenceNotice').textContent=d.referenceOnly?'Reference drawing outside the current browse selection. Part results remain filtered to your chassis.':'';
- active=d;$('previousImage').hidden=true;$('back').textContent=diagramHistory.length?'Back to previous diagram':'Back to diagrams';$('drawing').hidden=false;$('workspace').hidden=true;
- $('drawingTitle').textContent=d.illustration_id;$('canvas').replaceChildren();
- $('directImage').hidden=true;
- if(!r.pack.images[d.illustration_id]){
-  $('imageStatus').textContent='Original image unavailable';
-  $('canvas').append(text('p','This original illustration is missing from the supplied ASA data.'));return;
- }
- // Release the hidden gallery before decoding a fresh full-size image.
- $('groups').replaceChildren();releaseImages();
- const url=fullImageURL=newImageURL(d.illustration_id);
- $('directImage').href=url;$('directImage').hidden=false;
- const img=document.createElement('img');
- img.className='diagramImage';img.alt='Original Mitsubishi exploded diagram';
- img.decoding='async';img.draggable=false;img.width=d.width;img.height=d.height;
- img.onload=()=>{if(img.isConnected){$('imageStatus').textContent='Image ready · viewer 5';restorePosition();}};
- img.onerror=()=>{$('imageStatus').textContent='Image could not be decoded. Use Open image directly.';};
- $('imageStatus').textContent='Loading image…';$('canvas').append(img);img.src=url;
- for(const h of r.hotspots(d.illustration_id)){
-  const b=document.createElement('button');const reference=diagramReference(h);
-  b.setAttribute('aria-label',reference?'Open reference '+reference.main+'-'+reference.sub:'PNC '+h.pnc);
-  b.dataset.pnc=h.pnc;b.onclick=()=>reference?openReference(reference):lookup(h.pnc);
-  b.dataset.x=h.x;b.dataset.y=h.y;b.dataset.w=h.width;b.dataset.h=h.height;
-  $('canvas').append(b);
- }
- scale=Math.min(1,$('viewport').clientWidth/d.width);resize();
- if(position)restorePosition();else{$('viewport').scrollTop=0;$('viewport').scrollLeft=0;$('drawing').scrollIntoView({block:'start'});}
-}
-function diagramReference(h){
- if(Number(h.flags)!==2)return null;
- const code=String(h.pnc).trim().match(/^(\d{2})[ -]+(\d{3})\)?$/);
- return code?{main:code[1],sub:code[2]}:null;
-}
-function referenceTargets(reference){return r.referenceDiagrams(v,reference.main,reference.sub);}
-function openReference(reference){
- const targets=referenceTargets(reference);
- if(!targets.length){$('partContent').replaceChildren(text('h2','Reference '+reference.main+'-'+reference.sub),text('p','No matching reference drawing is available in the imported catalogue.'));$('parts').showModal();return;}
- diagramHistory.push({diagram:active,series:activeSeries,index:pageIndex,scale,top:$('viewport').scrollTop,left:$('viewport').scrollLeft,category:browseCategory,subgroup:browseSubgroup,x:window.scrollX,y:window.scrollY});
- const series=targets.map(d=>({...d,referenceOnly:!catalogueDiagrams.some(item=>item.illustration_id===d.illustration_id)}));
- browseCategory=categoryOf(series[0]);browseSubgroup=series[0].main_group+'|'+series[0].sub_group;
- $('parts').close();draw(series[0],series,0);
-}
-function previousImage(){
- const previous=diagramHistory.pop();if(!previous)return;
- browseCategory=previous.category;browseSubgroup=previous.subgroup;
- draw(previous.diagram,previous.series||[previous.diagram],previous.index||0,previous.x==null?null:{x:previous.x,y:previous.y,top:previous.top,left:previous.left});scale=previous.scale;resize();
- $('viewport').scrollTop=previous.top;$('viewport').scrollLeft=previous.left;
-}
-function cycleDiagram(step){
- if(activeSeries.length<2)return;
- const index=pageIndex+step;if(index<0||index>=activeSeries.length)return;
- const position={x:window.scrollX,y:window.scrollY,top:$('viewport').scrollTop,left:$('viewport').scrollLeft};
- draw(activeSeries[index],activeSeries,index,position);
-}
-$('previousImage').onclick=previousImage;
-$('previousPage').onclick=()=>cycleDiagram(-1);$('nextPage').onclick=()=>cycleDiagram(1);
-function swipeDirection(start,end){
- const dx=end.x-start.x;return Math.abs(dx)>=80&&Math.abs(end.y-start.y)<40&&end.time-start.time<800?(dx<0?1:-1):0;
-}
-let pageSwipe=null;
-document.addEventListener('touchstart',e=>{
- pageSwipe=null;if(e.touches.length!==1||$('parts').open||$('saveVehicleDialog').open)return;
- const touch=e.touches[0],viewport=$('viewport');
- const inDrawing=!$('drawing').hidden;
- const inImage=inDrawing&&viewport.contains(e.target);
- const fit=inDrawing&&viewport.scrollLeft===0&&active.width*scale<=viewport.clientWidth+2;
- // Fit-size image swipes turn bounded pages; right swipes elsewhere go back.
- if(!inImage||fit)
-  pageSwipe={x:touch.clientX,y:touch.clientY,time:e.timeStamp,inImage,inDrawing};
-},{passive:true});
-document.addEventListener('touchmove',e=>{if(e.touches.length!==1)pageSwipe=null;},{passive:true});
-document.addEventListener('touchend',e=>{
- const start=pageSwipe;pageSwipe=null;if(!start||e.touches.length||e.changedTouches.length!==1)return;
- const touch=e.changedTouches[0],direction=swipeDirection(start,{x:touch.clientX,y:touch.clientY,time:e.timeStamp});
- if(!direction)return;
- if(start.inDrawing&&activeSeries.length>1&&(start.inImage||direction===-1)){
-  if(direction===1||pageIndex>0){cycleDiagram(direction);return;}
- }
- if(direction===-1){
-  if(start.inDrawing)goBack();else document.getElementById('browseBack')?.click();
- }
-},{passive:true});
-document.addEventListener('touchcancel',()=>{pageSwipe=null;},{passive:true});
-function goBack(){
- if(diagramHistory.length){previousImage();return;}
- browseCategory=browseReturnCategory??browseCategory;browseSubgroup=null;select(v,true);
- $('drawing').hidden=true;$('workspace').hidden=false;restoreBrowsePosition(browseCategory);
-}
-function resize(){if(!active)return;$('canvas').style.width=active.width*scale+'px';$('canvas').style.height='auto';for(const b of $('canvas').querySelectorAll('button')){b.style.left=b.dataset.x*scale+'px';b.style.top=b.dataset.y*scale+'px';b.style.width=b.dataset.w*scale+'px';b.style.height=b.dataset.h*scale+'px'}$('zoomlevel').textContent=Math.round(scale*100)+'%'}
-$('zoomin').onclick=()=>{scale=Math.min(4,scale*1.3);resize()};$('zoomout').onclick=()=>{scale=Math.max(.2,scale/1.3);resize()};$('back').onclick=goBack;let pinch=null;const distance=ts=>Math.hypot(ts[0].clientX-ts[1].clientX,ts[0].clientY-ts[1].clientY);$('viewport').addEventListener('touchstart',e=>{if(e.touches.length===2)pinch={distance:distance(e.touches),scale}},{passive:true});$('viewport').addEventListener('touchmove',e=>{if(e.touches.length===2&&pinch){e.preventDefault();scale=Math.max(.2,Math.min(4,pinch.scale*distance(e.touches)/pinch.distance));resize()}},{passive:false});$('viewport').addEventListener('touchend',()=>pinch=null);
-
-function cataloguePartApplications(number){
- const seen=new Set;const rows=r.pack.tables.part_applications.filter(row=>{if(normalPartNumber(row.part_number)!==normalPartNumber(number))return false;const key=JSON.stringify([row.model,row.pnc,row.classifications,row.start_period,row.end_period,row.qualifier,row.combination_codes]);if(seen.has(key))return false;seen.add(key);return true;});
- const models=new Set(rows.map(row=>row.model)).size;const details=document.createElement('details');details.className='partApplications';details.append(text('summary','Applicable vehicles ('+models+' model'+(models===1?'':'s')+' · '+rows.length+' application'+(rows.length===1?'':'s')+')'));
- const scroll=document.createElement('div');scroll.className='partApplicationScroll';const list=document.createElement('div');const more=text('button','Show more applications');more.type='button';let offset=0;
- function append(){for(const row of rows.slice(offset,offset+50)){const card=document.createElement('article');card.className='card';card.append(text('h3',row.model+' · PNC '+row.pnc),text('p','Classification: '+(row.classifications||'All classifications recorded')),text('p','Production '+(row.start_period??'open')+'–'+(row.end_period??'open')),text('p',row.qualifier?'Option: '+row.qualifier+' · '+(r.pack.qualifierDescriptions[row.qualifier]||'Description unavailable'):'No option qualifier recorded'));if(row.combination_codes)card.append(text('p','Colour / interior combinations: '+row.combination_codes));card.append(text('small','Catalogue application; check the exact chassis before choosing a part.'));list.append(card);}offset+=50;more.hidden=offset>=rows.length;}
- more.onclick=append;scroll.append(list,more);details.append(scroll);let populated=false;details.ontoggle=()=>{if(details.open&&!populated){populated=true;append();}};return details;
-}
-
-function lookup(pnc){const result=r.lookup(v,pnc);$('partContent').replaceChildren(text('h2','PNC '+pnc),text('p',v.generic?'Generic selection · '+genericSummary(v.filters):`${v.model}-${v.serial_number} · ${v.classification} · ${v.production_period??'Period unknown'}`));if(!result.parts.length)$('partContent').append(text('p',result.status==='notImported'?'Application data not imported. This does not establish that the part was not fitted.':'No applicable part for this chassis in the imported applications.'));for(const p of result.parts){const a=document.createElement('article');a.className='card';a.append(text('div',p.part_number),text('p',v.generic?'Possible application for this selection':p.exact?'Matches decoded chassis conditions':'Candidate — requires verification'),text('p',p.qualifier?(r.pack.qualifierDescriptions[p.qualifier]||p.qualifier):'Generic application'),text('p',`Production ${p.start_period??'open'}–${p.end_period??'open'}`));a.firstChild.className='partno';a.append(cataloguePartApplications(p.part_number));$('partContent').append(a)}if(result.parts.length>1)$('partContent').append(text('p',v.generic?'All possible part numbers are shown. Choose a chassis to check factory applicability.':'Multiple part numbers remain. Replacement order has not been established.'));$('parts').showModal()}
-$('closeParts').onclick=()=>$('parts').close();
-
-const chassisKey=vehicle=>vehicle.model+'-'+vehicle.serial_number;
-function renderSavedVehicles(){
- const list=$('savedVehicleList');list.replaceChildren();
- $('savedVehicleCount').textContent=`${savedVehicles.length} saved`;
- const dropdown=document.createElement('details');dropdown.className='savedDropdown';
- const summary=text('summary',savedVehicles.length?'Choose a saved vehicle ('+savedVehicles.length+'/8)':'No saved vehicles');summary.setAttribute('aria-label','Saved vehicles');dropdown.append(summary);
- const menu=document.createElement('div');menu.className='savedMenu';
- if(!savedVehicles.length)menu.append(text('p','No saved vehicles yet.'));
- for(const entry of [...savedVehicles].sort((a,b)=>a.nickname.localeCompare(b.nickname))){
-  const row=document.createElement('div');row.className='savedRow';
-  const open=text('button',entry.nickname||entry.chassis);open.className='savedOpen';open.append(text('small',entry.chassis));open.setAttribute('aria-label','Open '+(entry.nickname||entry.chassis));
-  open.onclick=()=>{
-   const matches=r.search(entry.chassis).filter(vehicle=>chassisKey(vehicle)===entry.chassis);
-   if(matches.length!==1){$('savedVehicleStatus').textContent=entry.chassis+' cannot be identified uniquely in this imported catalogue.';return;}
-   $('savedVehicleStatus').textContent='';$('query').value=entry.chassis;select(matches[0]);summary.textContent=entry.nickname+' · '+entry.chassis;dropdown.open=false;$('vehicle').scrollIntoView({block:'start'});
-  };
-  const remove=text('button','Remove');remove.className='resetButton savedRemove';remove.setAttribute('aria-label','Remove '+(entry.nickname||entry.chassis));
-  remove.onclick=async()=>{
-   const next=savedVehicles.filter(item=>item.chassis!==entry.chassis);remove.disabled=true;
-   try{await storePack(next,'savedVehicles');savedVehicles=next;renderSavedVehicles();const current=$('saveCurrentVehicle');if(v&&chassisKey(v)===entry.chassis&&current)current.textContent='Save vehicle';$('savedVehicleStatus').textContent='Removed from My vehicles.';}
-   catch(e){remove.disabled=false;$('savedVehicleStatus').textContent='Could not save the change. Your saved vehicles are unchanged.';}
-  };
-  row.append(open,remove);menu.append(row);
- }
- dropdown.append(menu);list.append(dropdown);
- if(savedVehicles.length>8)$('savedVehicleStatus').textContent='Remove vehicles until eight remain before saving another vehicle.';
-}
-function openSaveVehicle(){
- const key=chassisKey(v),existing=savedVehicles.find(entry=>entry.chassis===key);
- $('saveVehicleHeading').textContent=existing?'Edit saved vehicle':'Save vehicle';
- $('saveVehicleChassis').textContent=key;
- $('vehicleNickname').value=existing?.nickname||key;
- $('saveVehicleError').textContent=!existing&&savedVehicles.length>=8?'You can save up to 8 vehicles. Remove one from My vehicles first.':'';$('confirmSaveVehicle').disabled=!existing&&savedVehicles.length>=8;$('saveVehicleDialog').showModal();$('vehicleNickname').focus();
-}
-$('cancelSaveVehicle').onclick=()=>$('saveVehicleDialog').close();
-$('saveVehicleForm').onsubmit=async event=>{
- event.preventDefault();const key=chassisKey(v),nickname=$('vehicleNickname').value.trim().slice(0,80)||key;
- if(!savedVehicles.some(entry=>entry.chassis===key)&&savedVehicles.length>=8){$('saveVehicleError').textContent='You can save up to 8 vehicles. Remove one from My vehicles first.';return;}const next=[...savedVehicles.filter(entry=>entry.chassis!==key),{chassis:key,nickname}];
- $('confirmSaveVehicle').disabled=true;
- try{await storePack(next,'savedVehicles');savedVehicles=next;renderSavedVehicles();
-  $('saveCurrentVehicle').textContent='Edit saved vehicle';$('saveVehicleDialog').close();
-  $('savedVehicleStatus').textContent='Saved '+nickname+'.';
- }catch(e){$('saveVehicleError').textContent='Could not save this vehicle. Your existing saved vehicles are unchanged.';}
- finally{$('confirmSaveVehicle').disabled=false;}
-};
-
-
-let partIndex=null,partRows=[],partOffset=0;
-const normalPartNumber=value=>(value||'').toUpperCase().replace(/[\s-]+/g,'');
-$('partSearchForm').onsubmit=event=>{
- event.preventDefault();$('partRecent').hidden=true;$('partSearchResults').replaceChildren();$('morePartResults').hidden=true;
- const number=normalPartNumber($('partQuery').value);
- if(!/^[A-Z0-9]{3,20}$/.test(number)){$('partSearchStatus').textContent='Enter a Mitsubishi part number, for example MR166160.';return;}
- rememberSearch('part',number);
- if(!partIndex){partIndex=new Map;for(const row of r.pack.tables.part_applications){const key=normalPartNumber(row.part_number);if(!partIndex.has(key))partIndex.set(key,[]);partIndex.get(key).push(row);}}
- const seen=new Set;partRows=(partIndex.get(number)||[]).filter(row=>{const key=JSON.stringify([row.model,row.pnc,row.classifications,row.start_period,row.end_period,row.qualifier,row.combination_codes]);if(seen.has(key))return false;seen.add(key);return true;});partOffset=0;
- if(!partRows.length){$('partSearchStatus').textContent='No exact match in this imported catalogue. Other Mitsubishi models or replacement numbers may not be included.';return;}
- $('partSearchStatus').textContent='';const card=document.createElement('article');card.className='card';const titleRow=document.createElement('div');titleRow.className='chassisTitleRow';titleRow.append(text('h3',number));const clear=text('button','Clear');clear.className='resetButton';clear.setAttribute('aria-label','Clear part search');clear.onclick=clearPartSearch;titleRow.append(clear);card.append(titleRow);const named=r.pack.partNames?.[number];const name=typeof named==='string'?named:named?.name||partRows.find(row=>row.part_name)?.part_name;card.append(text('p',name||'Part name unavailable in this data pack.'));$('partSearchResults').append(card);
- if(v&&!v.generic){const matched=partRows.filter(row=>row.model===v.model).flatMap(row=>r.lookup(v,row.pnc).parts).filter(part=>normalPartNumber(part.part_number)===number);card.append(text('p',chassisKey(v)+': '+(matched.length?(matched.some(part=>part.exact)?'Matches decoded chassis conditions.':'Candidate — requires verification.'):'No applicable match in the imported applications.')));}
- const modelCount=new Set(partRows.map(row=>row.model)).size;const applications=document.createElement('details');applications.className='partApplications';const summary=text('summary','Applicable vehicles ('+modelCount+' model'+(modelCount===1?'':'s')+' · '+partRows.length+' application'+(partRows.length===1?'':'s')+')');applications.append(summary);const scroll=document.createElement('div');scroll.className='partApplicationScroll';const list=document.createElement('div');list.id='partApplicationList';scroll.append(list);const more=text('button','Show more applications');more.id='partApplicationsMore';more.onclick=appendPartApplications;scroll.append(more);applications.append(scroll);card.append(applications);appendPartApplications();
-};
-function clearPartSearch(){ $('partQuery').value='';$('partSearchResults').replaceChildren();$('partSearchStatus').textContent='';$('morePartResults').hidden=true;partRows=[];partOffset=0; }
-function appendPartApplications(){
- const list=$('partApplicationList');if(!list)return;
- for(const row of partRows.slice(partOffset,partOffset+50)){
-  const card=document.createElement('article');card.className='card';card.append(text('h3',row.model+' · PNC '+row.pnc),text('p','Classification: '+(row.classifications||'All classifications recorded')),text('p','Production '+(row.start_period??'open')+'–'+(row.end_period??'open')),text('p',row.qualifier?'Option: '+row.qualifier+' · '+(r.pack.qualifierDescriptions[row.qualifier]||'Description unavailable'):'No option qualifier recorded'));
-  if(row.combination_codes)card.append(text('p','Colour / interior combinations: '+row.combination_codes));
-  card.append(text('small','Catalogue application; check the exact chassis before choosing a part.'));list.append(card);
- }
- partOffset+=50;$('partApplicationsMore').hidden=partOffset>=partRows.length;
-}
-$('morePartResults').onclick=appendPartApplications;
-
-
-let catalogueDiagrams=[],browseCategory=null,browseSubgroup=null,browseReturnCategory=null;
-const browsePositions=new Map;
-function saveBrowsePosition(category){browsePositions.set(category||'categories',{x:window.scrollX,y:window.scrollY});}
-function restoreBrowsePosition(category){const saved=browsePositions.get(category||'categories');if(saved)window.scrollTo(saved.x,saved.y);else $('groups').scrollIntoView({block:'start'});}
-
-const asaCategories=[['Engine','11 12 13 14 15 16'],['PwrTrain','21 22 23 24 25 26 27 31 33 34 35 37'],['Body','42 43 51 52 53 61 91'],['Electrical','54 55']];
-function categoryOf(d){return asaCategories.find(([,numbers])=>numbers.split(' ').includes(d.main_group))?.[0]||'Other';}
-function subgroupLabel(d){return groupNames[(v.generic?(v.filters.model||d.model):v.model)+'|'+d.main_group+'|'+d.sub_group]||('Group '+d.main_group+' / Subgroup '+d.sub_group);}
-function renderCatalogueBrowser(){
- const container=$('groups');container.replaceChildren();
- if(!catalogueDiagrams.length){container.append(text('p','No applicable diagrams in the imported data.'));return;}
- const categories=[...asaCategories.map(([name])=>name),'Other'].filter(name=>catalogueDiagrams.some(d=>categoryOf(d)===name));
- if(!categories.includes(browseCategory))browseCategory=null;
- if(!browseCategory){
-  container.append(text('h2','Browse catalogue'));const grid=document.createElement('div');grid.className='categoryGrid';
-  for(const name of categories){const rows=catalogueDiagrams.filter(d=>categoryOf(d)===name),count=new Set(rows.map(d=>d.main_group+'|'+d.sub_group)).size;const button=text('button',name);button.append(text('small',count+' subgroups'));button.onclick=()=>{saveBrowsePosition(null);browseCategory=name;browseSubgroup=null;renderCatalogueBrowser();restoreBrowsePosition(name);};grid.append(button);}
-  container.append(grid);return;
- }
- const back=text('button',browseSubgroup?'Back to '+browseCategory:'Back to categories');back.onclick=()=>{saveBrowsePosition(browseCategory);if(browseSubgroup)browseSubgroup=null;else browseCategory=null;renderCatalogueBrowser();restoreBrowsePosition(browseCategory);};back.id='browseBack';container.append(back);
- const rows=catalogueDiagrams.filter(d=>categoryOf(d)===browseCategory);
- if(!browseSubgroup){
-  container.append(text('h2',browseCategory));const grouped=new Map;
-  for(const d of rows){const key=d.main_group+'|'+d.sub_group;if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(d);}
-  const grid=document.createElement('div');grid.className='subgroupGrid';
-  for(const [key,diagrams] of [...grouped].sort(([a],[b])=>a.localeCompare(b))){const d=diagrams[0],button=text('button',subgroupLabel(d));button.append(text('small',d.main_group+'-'+d.sub_group+' · '+diagrams.length+' diagram'+(diagrams.length===1?'':'s')));button.onclick=()=>{saveBrowsePosition(browseCategory);browseReturnCategory=browseCategory;browseSubgroup=key;draw(diagrams[0],diagrams,0);};grid.append(button);}
-  container.append(grid);return;
- }
- const diagrams=rows.filter(d=>d.main_group+'|'+d.sub_group===browseSubgroup);
- if(!diagrams.length){browseSubgroup=null;renderCatalogueBrowser();return;}
- container.append(text('h2',subgroupLabel(diagrams[0])),text('p',browseCategory+' · '+diagrams[0].main_group+'-'+diagrams[0].sub_group));
- for(const d of diagrams){const button=document.createElement('button');button.className='diagramButton';if(r.pack.images[d.illustration_id]){const img=document.createElement('img');img.alt='';img.loading='lazy';img.decoding='async';img.src=imageURL(d.illustration_id);button.append(img);}const label=text('span',d.illustration_id);label.append(text('small',r.pack.images[d.illustration_id]?r.hotspots(d.illustration_id).length+' PNC hotspots':'Original image unavailable'));button.append(label);button.onclick=()=>draw(d,diagrams,diagrams.indexOf(d));container.append(button);}
-}
-
-try{db=await openDB();const storedNames=await readPack('groupNames');if(storedNames&&typeof storedNames==='object'&&!Array.isArray(storedNames))groupNames=storedNames;const preferences=await readPack('savedVehicles');savedVehicles=Array.isArray(preferences)?preferences.filter(x=>x&&typeof x.chassis==='string'&&/^[A-Z0-9]+-[0-9]{7}$/.test(x.chassis)&&typeof x.nickname==='string').map(x=>({chassis:x.chassis,nickname:x.nickname.slice(0,80)})):[];const saved=await readPack();if(saved)loaded(saved)}catch(e){$('importStatus').textContent='Local storage unavailable: '+e.message}updateSettingsSummaries();
-if('serviceWorker' in navigator && window.isSecureContext){
- $('offlineStatus').textContent='Preparing app for offline use…';
- try{
-  await navigator.serviceWorker.register('./sw.js');
-  await navigator.serviceWorker.ready;
-  updateOfflineReadiness();
-  $('offlineStatus').textContent='App saved for offline use. Import your catalogue here, then test in airplane mode.';
- }catch(e){$('offlineStatus').textContent='Offline setup failed. Reopen with internet access before testing offline.';}
-}else{$('offlineStatus').textContent='Offline installation needs a secure web address.';}
-
-
-
-
-
-
