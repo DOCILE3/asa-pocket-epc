@@ -188,7 +188,7 @@ function updateUi() {
   const select = $('sourceModel');
   select.replaceChildren(new Option('Choose model', ''));
   if (activePack) {
-    for (const item of activePack.manifest.models) select.add(new Option(`${item.model} (${item.rows.toLocaleString()} rows)`, item.model));
+    for (const item of activePack.manifest.models) select.add(new Option(item.model, item.model));
     setStatus(`Generic v8.1 · ${activePack.manifest.source_models.toLocaleString()} models · Stored on this device`);
   } else {
     setStatus('Not installed. Choose the single 436-model download once; searches do not require selecting a file again.');

@@ -28,8 +28,8 @@
   const genericSummary = el('div', {id:'genericPackSummary', class:'settingsInfo', text:'No Generic Search Data Pack imported on this device.'});
   genericSettings.append(genericSummary);
   const settingsActions = el('div', {class:'settingsPackActions'});
-  const importButton = el('button', {type:'button', class:'settingsPrimary', text:'Import or Replace Generic Search Pack'});
-  const removeButton = el('button', {id:'genericPackRemove', type:'button', class:'settingsPrimary', disabled:'disabled', text:'Remove Generic Search Pack'});
+  const importButton = el('button', {type:'button', class:'settingsPrimary', 'aria-label':'Import Data Pack for Generic Search', text:'Import Data Pack'});
+  const removeButton = el('button', {id:'genericPackRemove', type:'button', class:'settingsPrimary', disabled:'disabled', 'aria-label':'Remove Data Pack for Generic Search', text:'Remove Data Pack'});
   importButton.addEventListener('click', () => genericInput.click());
   settingsActions.append(importButton, removeButton);
   genericSettings.append(settingsActions);
@@ -156,7 +156,7 @@
   (async () => {
     try {
       await loadScript('./generic-v81.js?v=2');
-      await loadScript('./model-browse.js?v=9');
+      await loadScript('./model-browse.js?v=10');
       await loadScript('./model-illustrations.js?v=6');
       updateHome();
     } catch (error) {
