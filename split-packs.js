@@ -155,7 +155,7 @@
   (async () => {
     try {
       await loadScript('./generic-v81.js?v=2');
-      await loadScript('./model-browse.js?v=8');
+      await loadScript('./model-browse.js?v=9');
       await loadScript('./model-illustrations.js?v=6');
       updateHome();
     } catch (error) {

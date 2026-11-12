@@ -188,9 +188,8 @@ function updateUi() {
   const select = $('sourceModel');
   select.replaceChildren(new Option('Choose model', ''));
   if (activePack) {
-    const displayScope = activePack.genericBlob ? " G4 display data is partial. Colour is unavailable, Japanese Part Name is excluded, and undecoded specs are omitted." : "";
     for (const item of activePack.manifest.models) select.add(new Option(`${item.model} (${item.rows.toLocaleString()} rows)`, item.model));
-    setStatus(`Installed once: ${activePack.manifest.source_models.toLocaleString()} models · ${activePack.manifest.source_rows.toLocaleString()} model-level rows. Option remains fixed at 000; Exterior and Interior are unavailable in this export.${displayScope}`);
+    setStatus(`Generic v8.1 · ${activePack.manifest.source_models.toLocaleString()} models · Stored on this device`);
   } else {
     setStatus('Not installed. Choose the single 436-model download once; searches do not require selecting a file again.');
   }
