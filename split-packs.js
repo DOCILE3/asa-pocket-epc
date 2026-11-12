@@ -17,7 +17,7 @@
     return node;
   };
   const style = el('style');
-  style.textContent = '.generic-only .chassisOnly,.generic-only #partSearch{display:none!important}.splitPackCard{border-top:1px solid var(--line,#39434c);margin-top:18px;padding-top:16px}.splitGenericPanel{border:1px solid var(--line,#39434c);border-radius:12px;padding:16px;margin:16px 0}.splitGenericPanel[hidden]{display:none}.splitGenericForm{display:grid;gap:12px;margin:12px 0 18px}.splitGenericForm label{display:grid;gap:6px}.splitGenericForm input,.splitGenericForm select{width:100%}.genericPackScope{color:var(--muted,#aeb8c2)}';
+  style.textContent = '.generic-only .chassisOnly,.generic-only #partSearch{display:none!important}.splitPackCard{border-top:1px solid var(--line,#39434c);margin-top:18px;padding-top:16px}.splitGenericPanel{margin:16px 0}.splitGenericForm{display:grid;gap:12px;margin:12px 0 18px}.splitGenericForm label{display:grid;gap:6px}.splitGenericForm input{width:100%}:root[data-theme="light"] #sourceModelSearchForm select{background:var(--asa-light-surface);color:var(--asa-light-text);border-color:var(--asa-light-border)}';
   document.head.append(style);
 
   // Keep the chassis catalogue and the generic source in separate import paths.
@@ -43,32 +43,46 @@
 
   const genericPanel = el('section', {id:'genericPackWorkspace', class:'splitGenericPanel'});
   genericPanel.hidden = true;
-  genericPanel.append(el('p', {class:'genericPackScope', text:'Generic Search data is stored separately from the Chassis Data Pack. Results are model-level source matches, not chassis fitment.'}));
   const missingPrompt = el('div', {id:'genericPackMissing', class:'settingsInfo', text:'Install a Generic Search Data Pack in Settings to browse models, group names and source part rows.'});
   const missingSettings = el('button', {type:'button', text:'Open Data Pack settings'});
   missingSettings.addEventListener('click', () => { $('settings').click(); $('dataTab').click(); });
   missingPrompt.append(missingSettings);
   genericDetails.append(missingPrompt);
-  const controls = el('div', {id:'sourcePackControls', class:'sourceModelBrowse'});
+  const controls = el('div', {id:'sourcePackControls', hidden:'hidden'});
   const hiddenHosted = el('button', {id:'hostedBrowsePack', type:'button', hidden:'hidden'});
   const status = el('p', {id:'sourcePackStatus', class:'settingsInfo', role:'status', text:'Checking for an installed Generic Search Data Pack…'});
   const removeGeneric = el('button', {id:'removeSourcePack', type:'button', hidden:'hidden', text:'Remove Generic Search Data Pack'});
   controls.append(hiddenHosted, status, removeGeneric);
-  genericPanel.append(controls);
+  genericSettings.append(controls);
 
-  const searchForm = el('form', {id:'sourceModelSearchForm', class:'splitGenericForm'});
+  const searchForm = el('form', {id:'sourceModelSearchForm'});
+  const fields = el('div', {class:'genericFields'});
   const modelLabel = el('label', {for:'sourceModel', text:'Model'});
   const model = el('select', {id:'sourceModel', 'aria-label':'Generic Search model'});
   model.add(new Option('Choose model', ''));
   modelLabel.append(model);
-  const classLabel = el('label', {for:'sourceClassFilter', text:'Classification (raw E2 value)'});
-  const classification = el('input', {id:'sourceClassFilter', type:'text', maxlength:'32', autocomplete:'off', placeholder:'Optional raw value'});
+  const classLabel = el('label', {for:'sourceClassFilter', text:'Classification'});
+  const classification = el('select', {id:'sourceClassFilter', disabled:'disabled'});
+  classification.add(new Option('Any', ''));
   classLabel.append(classification);
-  const genericSearchButton = el('button', {type:'submit', class:'searchAction', text:'Browse selection'});
-  searchForm.append(modelLabel, classLabel, genericSearchButton);
+  fields.append(modelLabel, classLabel);
+  for (const [id, title] of [['sourceOption','Option'],['sourceExterior','Exterior'],['sourceInterior','Interior']]) {
+    const label = el('label', {for:id, text:title});
+    const select = el('select', {id, disabled:'disabled', 'aria-label':title + ' (unavailable in this pack)'});
+    select.add(new Option('', ''));
+    label.append(select);
+    fields.append(label);
+  }
+  const browseActions = el('div', {class:'vehicleActions'});
+  browseActions.append(
+    el('button', {type:'submit', text:'Browse selection'}),
+    el('button', {id:'sourceBrowseClear', type:'reset', class:'resetButton', text:'Clear'})
+  );
+  searchForm.append(el('p', {text:'Browse model-level parts without a chassis number.'}), fields, browseActions,
+    el('p', {id:'sourceBrowseStatus', role:'status', hidden:'hidden'}));
   const searchRoot = el('div', {id:'sourceModelSearch'});
   searchRoot.append(searchForm);
-  genericPanel.append(searchRoot);
+  genericDetails.append(searchRoot);
 
   const partForm = el('form', {id:'genericPackPartForm', class:'splitGenericForm'});
   partForm.append(el('h3', {text:'Find a part'}));
@@ -103,7 +117,7 @@
     const ready = !!model.options[1];
     genericPanel.hidden = !ready;
     missingPrompt.hidden = ready;
-    genericDetails.hidden = ready;
+    searchRoot.hidden = !ready;
     genericSummary.textContent = ready ? status.textContent : 'No Generic Search Data Pack imported on this device.';
     removeButton.disabled = !ready;
   };
@@ -141,7 +155,7 @@
   (async () => {
     try {
       await loadScript('./generic-v81.js?v=2');
-      await loadScript('./model-browse.js?v=7');
+      await loadScript('./model-browse.js?v=8');
       await loadScript('./model-illustrations.js?v=6');
       updateHome();
     } catch (error) {

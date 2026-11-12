@@ -13,6 +13,8 @@ const DB_VERSION = 1;
 const DB = openDb();
 let activePack = null;
 let partSearch = null;
+let browseRequest = 0;
+let modelClassifications = new Map();
 
 function openDb() {
   return new Promise((resolve, reject) => {
@@ -192,6 +194,22 @@ function updateUi() {
   } else {
     setStatus('Not installed. Choose the single 436-model download once; searches do not require selecting a file again.');
   }
+  updateClassificationOptions();
+}
+
+function updateClassificationOptions() {
+  const select = $('sourceClassFilter');
+  const model = $('sourceModel').value;
+  const choices = modelClassifications.get(model) ?? [];
+  select.replaceChildren(new Option('Any', ''), ...choices.map(value => new Option(value, value)));
+  select.disabled = choices.length === 0;
+}
+
+function setBrowseStatus(message, bad = false) {
+  const status = $('sourceBrowseStatus');
+  status.textContent = message;
+  status.dataset.state = bad ? 'error' : 'ok';
+  status.hidden = !message;
 }
 
 async function* gzipLines(bytes) {
@@ -255,28 +273,29 @@ function classificationValues(record) {
 }
 
 async function searchModel() {
+  const request = ++browseRequest;
   const pack = activePack;
-  if (!pack) return setStatus('Install the Generic Search Data Pack first.', true);
+  if (!pack) return setBrowseStatus('Install the Generic Search Data Pack first.', true);
   const modelName = $('sourceModel').value;
-  if (!modelName) return setStatus('Choose a model to browse.', true);
+  if (!modelName) return setBrowseStatus('Choose a model to browse.', true);
   const selectedClass = $('sourceClassFilter').value;
   const spec = pack.manifest.models.find(item => item.model === modelName);
-  if (!spec) return setStatus('The selected model is missing from the installed pack.', true);
+  if (!spec) return setBrowseStatus('The selected model is missing from the installed pack.', true);
   const out = $('results'); out.replaceChildren();
-  setStatus(`Searching ${modelName} source rows…`);
+  setBrowseStatus(`Searching ${modelName} source rows…`);
   try {
     let shown = 0;
     for await (const record of readModelRows(pack, spec)) {
-      if (pack !== activePack) return;
+      if (pack !== activePack || request !== browseRequest) return;
       if (!selectedClass || classificationValues(record).includes(selectedClass)) shown++;
     }
-    if (pack !== activePack) return;
-    setStatus(`${modelName}: ${shown.toLocaleString()} matching model-level source rows in this selection. Browse the catalogue categories below for available illustrations and recorded PNC hotspots. ${selectedClass ? "Filtered by raw E2 value " + selectedClass + ". " : ""}This is model-level routing, not chassis-number fitment. Source rows without a mapped illustration route are not shown.`);
+    if (pack !== activePack || request !== browseRequest) return;
+    setBrowseStatus(`${modelName}: ${shown.toLocaleString()} matching model-level source rows.`);
     window.ASA_RENDER_MODEL_CATEGORIES?.(modelName);
   } catch (error) {
-    if (pack !== activePack) return;
+    if (pack !== activePack || request !== browseRequest) return;
     out.replaceChildren();
-    setStatus(`Search stopped: ${error.message}`, true);
+    setBrowseStatus(`Search stopped: ${error.message}`, true);
   }
 }
 
@@ -388,6 +407,18 @@ $('sourcePackFile').addEventListener('change', event => {
   if (file) installPack(file);
 });
 $('sourceModelSearchForm').addEventListener('submit', event => { event.preventDefault(); searchModel(); });
+$('sourceModelSearchForm').addEventListener('reset', event => {
+  event.preventDefault();
+  $('sourceModel').value = '';
+  updateClassificationOptions();
+  browseRequest++;
+  setBrowseStatus('');
+});
+$('sourceModel').addEventListener('change', () => {
+  updateClassificationOptions();
+  browseRequest++;
+  setBrowseStatus('');
+});
 $('genericPackPartForm').addEventListener('submit', event => { event.preventDefault(); findPartAcrossModels(); });
 $('genericPartCancel').addEventListener('click', () => partSearch?.abort());
 $('removeSourcePack').addEventListener('click', removePack);
@@ -399,9 +430,9 @@ async function loadFilterIndex() {
     if (await digest(bytes) !== '08b0d252d1008657d51f31f0da8bf324c821891165e7ac9a173867b3e4acf223') throw new Error('Model filter index hash does not match the pinned source-derived index.');
     const index = JSON.parse(new TextDecoder().decode(bytes));
     if (index.schema !== 'asa-general-model-filter-index-v1' || index.source_pack_sha256 !== 'a69c051ed95991d0235e8f3a00a6a6fb6e7afaecf41cea50ad17b00337045b2c' || index.source_models !== 436 || index.source_rows !== 1282060 || index.models?.length !== 436) throw new Error('Model filter index identity or coverage is invalid.');
-    window.ASA_GENERAL_MODEL_FILTERS = index.models;
-    window.dispatchEvent(new CustomEvent('asa-general-model-filters-ready'));
-  } catch (error) { setStatus(`Model list unavailable: ${error.message}`, true); }
+    modelClassifications = new Map(index.models.map(row => [row.model, row.raw_classifications]));
+    updateClassificationOptions();
+  } catch (error) { setBrowseStatus(`Classification options unavailable: ${error.message}`, true); }
 }
 loadFilterIndex();
 const initialLoad = loadActive();
