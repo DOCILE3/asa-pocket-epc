@@ -17,7 +17,7 @@
     return node;
   };
   const style = el('style');
-  style.textContent = '.generic-only .chassisOnly,.generic-only #partSearch{display:none!important}.splitPackCard{border-top:1px solid var(--line,#39434c);margin-top:18px;padding-top:16px}.splitGenericPanel{margin:16px 0}.splitGenericForm{display:grid;gap:12px;margin:12px 0 18px}.splitGenericForm label{display:grid;gap:6px}.splitGenericForm input{width:100%}:root[data-theme="light"] #sourceModelSearchForm select{background:var(--asa-light-surface);color:var(--asa-light-text);border-color:var(--asa-light-border)}';
+  style.textContent = '.generic-only .chassisOnly,.generic-only #partSearch{display:none!important}.splitPackCard{border-top:1px solid var(--line,#39434c);margin-top:18px;padding-top:16px}:root[data-theme="light"] #sourceModelSearchForm select{background:var(--asa-light-surface);color:var(--asa-light-text);border-color:var(--asa-light-border)}';
   document.head.append(style);
 
   // Keep the chassis catalogue and the generic source in separate import paths.
@@ -41,7 +41,7 @@
   if (namesButton) namesButton.hidden = true;
   namesHeading?.parentElement?.insertBefore(genericSettings, namesHeading);
 
-  const genericPanel = el('section', {id:'genericPackWorkspace', class:'splitGenericPanel'});
+  const genericPanel = el('section', {id:'genericPackWorkspace', class:'partSearchLayout'});
   genericPanel.hidden = true;
   const missingPrompt = el('div', {id:'genericPackMissing', class:'settingsInfo', text:'Install a Generic Search Data Pack in Settings to browse models, group names and source part rows.'});
   const missingSettings = el('button', {type:'button', text:'Open Data Pack settings'});
@@ -84,15 +84,16 @@
   searchRoot.append(searchForm);
   genericDetails.append(searchRoot);
 
-  const partForm = el('form', {id:'genericPackPartForm', class:'splitGenericForm'});
-  partForm.append(el('h3', {text:'Find a part'}));
+  genericPanel.append(el('h2', {text:'Find a part'}));
+  const partForm = el('form', {id:'genericPackPartForm'});
   const numberLabel = el('label', {for:'genericPartNumber', text:'Mitsubishi part number or PNC'});
-  const number = el('input', {id:'genericPartNumber', type:'search', required:'required', maxlength:'40', autocomplete:'off', autocapitalize:'characters', placeholder:'Enter part number or PNC'});
-  numberLabel.append(number);
+  const number = el('input', {id:'genericPartNumber', type:'search', required:'required', maxlength:'40', autocomplete:'off', autocapitalize:'characters', placeholder:'MR166160'});
   const findPart = el('button', {id:'genericPartSubmit', type:'submit', class:'searchAction', text:'Find part'});
+  const searchRow = el('div', {class:'search'});
+  searchRow.append(number, findPart);
+  partForm.append(numberLabel, searchRow);
   const cancelPart = el('button', {id:'genericPartCancel', type:'button', hidden:'hidden', text:'Cancel search'});
-  partForm.append(el('p', {text:'Search all models in the installed Generic Search Data Pack.'}), numberLabel, findPart, cancelPart, el('p', {id:'genericPartStatus', role:'status'}));
-  genericPanel.append(partForm);
+  genericPanel.append(partForm, el('p', {id:'genericPartStatus', role:'status'}), cancelPart);
   genericPanel.append(el('div', {id:'genericPartResults'}));
   const illustration = el('section', {id:'modelIllustrationBrowse', class:'sourceModelBrowse illustrationBrowse', hidden:'hidden'});
   illustration.append(el('h3', {text:'Illustrations for selected model'}));
@@ -108,10 +109,10 @@
   const viewer = el('div', {id:'illustrationViewer', hidden:'hidden'});
   viewer.append(el('p', {id:'illustrationCaption', class:'illustrationCaption'}), el('div', {id:'illustrationImageFrame', class:'illustrationImageFrame'}), el('div', {id:'illustrationPartResult', 'aria-live':'polite'}));
   illustration.append(viewer); genericPanel.append(illustration);
-  const groups = $('groups');
-  if (groups) groups.before(genericPanel);
+  const legacyPartSearch = $('partSearch');
+  legacyPartSearch.before(genericPanel);
   legacyGeneric.hidden = true;
-  $('partSearch').hidden = true;
+  legacyPartSearch.hidden = true;
 
   const updatePackControls = () => {
     const ready = !!model.options[1];
