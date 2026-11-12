@@ -145,7 +145,7 @@ body:has(#workspace:not([hidden])) #partSearch{margin-top:29px;padding-top:27px;
 body:has(#workspace:not([hidden])) #partSearch form{margin-top:20px}
 body:has(#workspace:not([hidden])) #partSearch .searchAction{min-width:96px}
 body:has(#workspace:not([hidden])) #offlineStatus{display:none}
-body:has(#workspace:not([hidden])) footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+footer{display:flex;align-items:center;justify-content:space-between;gap:12px} footer #dataStatus{min-width:0;overflow-wrap:anywhere} footer .appVersion{flex:none;white-space:nowrap;margin-left:auto}
 :root[data-theme="light"] body:has(#workspace:not([hidden])) .settingsButton{background:var(--asa-light-raised);color:var(--asa-light-text);border-color:var(--asa-light-border)}
 :root[data-theme="light"] body:has(#workspace:not([hidden])) .savedDropdown>summary,:root[data-theme="light"] body:has(#workspace:not([hidden])) .search input,:root[data-theme="light"] body:has(#workspace:not([hidden])) #genericBrowse{background:var(--asa-light-surface);color:var(--asa-light-text);border-color:var(--asa-light-border)}
 :root[data-theme="light"] body:has(#workspace:not([hidden])) .savedDropdown>summary{color:#9d0010}
