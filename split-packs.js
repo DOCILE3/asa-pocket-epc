@@ -133,8 +133,8 @@
     const chassisReady = /^ASA\s/.test(dataLabel) && !dataLabel.startsWith('Generic Search');
     document.body.classList.toggle('generic-only', genericReady && !chassisReady);
     if (genericReady && !chassisReady) {
-      $('setup').hidden = true; $('settingsPage').hidden = true; workspace.hidden = false;
-      document.body.classList.remove('settings-open');
+      $('setup').hidden = true;
+      if ($('settingsPage').hidden && $('drawing').hidden) workspace.hidden = false;
       $('connection').textContent = navigator.onLine ? 'Generic Search Data Pack ready on this device' : 'Offline · Generic Search Data Pack available';
       if ($('dataStatus').textContent !== 'Generic Search Data Pack · model-level data') $('dataStatus').textContent = 'Generic Search Data Pack · model-level data';
     } else if (!genericReady && !chassisReady && !$('settingsPage').hidden) {
@@ -156,8 +156,8 @@
   (async () => {
     try {
       await loadScript('./generic-v81.js?v=2');
-      await loadScript('./model-browse.js?v=10');
-      await loadScript('./model-illustrations.js?v=6');
+      await loadScript('./model-browse.js?v=11');
+      await loadScript('./model-illustrations.js?v=7');
       updateHome();
     } catch (error) {
       genericSummary.textContent = 'Generic Search Data Pack features could not start: ' + error.message;

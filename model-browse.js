@@ -111,12 +111,15 @@ function setStatus(message, bad = false) {
 }
 
 function clearGenericResults() {
+  browseRequest++;
+  window.ASA_CLEAR_GENERIC_CATALOGUE?.();
+  setBrowseStatus('');
   partSearch?.abort();
   partSearch = null;
   $('genericPartStatus').textContent = '';
   $('genericPartSubmit').disabled = false;
   $('genericPartCancel').hidden = true;
-  for (const id of ['results','groups','genericPartResults']) $(id)?.replaceChildren();
+  $('genericPartResults').replaceChildren();
   if ($('modelIllustrationBrowse')) $('modelIllustrationBrowse').hidden = true;
   if ($('illustrationViewer')) $('illustrationViewer').hidden = true;
 }
@@ -290,7 +293,7 @@ async function searchModel() {
     }
     if (pack !== activePack || request !== browseRequest) return;
     setBrowseStatus(`${modelName}: ${shown.toLocaleString()} matching model-level source rows.`);
-    window.ASA_RENDER_MODEL_CATEGORIES?.(modelName);
+    await window.ASA_RENDER_MODEL_CATEGORIES?.(modelName, () => pack === activePack && request === browseRequest);
   } catch (error) {
     if (pack !== activePack || request !== browseRequest) return;
     out.replaceChildren();
@@ -412,6 +415,7 @@ $('sourceModelSearchForm').addEventListener('reset', event => {
   updateClassificationOptions();
   browseRequest++;
   setBrowseStatus('');
+  window.ASA_CLEAR_GENERIC_CATALOGUE?.();
 });
 $('sourceModel').addEventListener('change', () => {
   updateClassificationOptions();

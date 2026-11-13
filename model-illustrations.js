@@ -8,6 +8,7 @@
   const routeCache = new Map(), imageCache = new Map(), partCache = new Map();
   let compactThumbnailIndex;
   let modelNames = [];
+  let browseGeneration = 0;
   const generic = window.ASA_GENERIC_V81;
   const urls = new Map();
   window.addEventListener('asa-generic-dataset-changed', () => {
@@ -100,6 +101,7 @@
     }).catch(() => img.remove());
   }
   function renderCategories(model, routes) {
+    container.dataset.catalogueOwner = 'generic';
     container.replaceChildren();
     const dedup = [...new Map(routes.map(r=>[`${r.catalogue}|${r.model}|${r.group}|${r.subgroup}|${r.illustration}`,r])).values()];
     if (!dedup.length) { container.append(text('p', `${model}: no model-to-illustration routes are listed.`)); return; }
@@ -111,19 +113,40 @@
     container.append(grid);
   }
   function renderSubgroups(model, name, rows) {
-    container.replaceChildren(); const back=text('button','‹ Back to categories'); back.onclick=async()=>renderCategories(model,await loadModel(model)); container.append(back,text('h2',name));
+    const back = text('button','‹ Back to categories');
+    back.id = 'browseBack';
+    back.onclick = () => {
+      container.replaceChildren(...previous.nodes);
+      window.scrollTo(previous.x, previous.y);
+    };
+    const previous = {nodes:[...container.childNodes], x:window.scrollX, y:window.scrollY};
+    container.replaceChildren(back,text('h2',name));
     const grid=text('div','','subgroupGrid');
     for(const [key, routes] of grouped(rows,r=>`${r.group}|${r.subgroup}`)){
       const [group,subgroup]=key.split('|');
       const button=document.createElement('button');button.className='browseImageTile subgroupImageTile';appendTilePreview(button,group,subgroup);const copy=text('span',subgroupName(model,group,subgroup),'browseTileCopy');copy.append(text('small',`${new Set(routes.map(r=>r.illustration)).size} illustrations`));button.append(copy);
-      button.onclick=()=>renderDiagrams(model,name,group,subgroup,routes); grid.append(button);
+      button.onclick=()=>openSeries(routes); grid.append(button);
     }
     container.append(grid);
+    container.scrollIntoView({block:'start'});
   }
-  function renderDiagrams(model, name, group, subgroup, routes) {
-    container.replaceChildren();const back=text('button',`‹ Back to ${name}`);back.onclick=async()=>renderSubgroups(model,name,(await loadModel(model)).filter(r=>categoryFor(r)===name));container.append(back,text('h2',subgroupName(model,group,subgroup)));
-    const unique=[...new Map(routes.map(r=>[r.illustration,r])).values()].sort((a,b)=>a.illustration.localeCompare(b.illustration));
-    for(const route of unique){const button=document.createElement('button');button.className='diagramButton';const img=document.createElement('img');img.alt='';img.loading='lazy';img.src=imageUrl(route.illustration);button.append(img);const label=text('span',route.illustration);label.append(text('small',`${generic.active ? 'Recorded geometry' : route.hotspotCount + ' recorded hotspots'} · ${route.catalogue}`));button.append(label);button.onclick=()=>showDiagram(model,route,routes);container.append(button);}
+  function openSeries(routes) {
+    const series = [...grouped(routes, route => route.illustration)]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([illustration_id, sources]) => ({illustration_id, sources}));
+    window.ASA_GENERIC_VIEWER.open(series, {
+      async load(diagram) {
+        const id = diagram.illustration_id;
+        const data = await loadImage(id);
+        const [width, height] = data.dimensions;
+        const url = imageUrl(id);
+        if (!url || !(width > 0 && height > 0)) throw new Error('Source illustration unavailable.');
+        return {url, width, height, hotspots:(data.hotspots || []).map(h => ({...h,width:h.w,height:h.h}))};
+      },
+      lookup(diagram, hotspot, details) {
+        return showHotspot(hotspot, diagram.sources, details);
+      }
+    });
   }
   function appendPartRows(parent,key,rows){
     if(!rows.length){parent.append(text('p',`No exact source part row for ${key}. This does not establish that the part is inapplicable.`));return;}
@@ -139,20 +162,12 @@
     const unique=[...new Map(routes.map(r=>[`${r.catalogue}|${r.model}|${hotspot.pnc}`,r])).values()];
     for(const route of unique){const key=`${route.catalogue}|${route.model}|${hotspot.pnc}`;details.append(text('h4',`Source part rows · ${key}`));try{appendPartRows(details,key,await loadParts(key));}catch(e){details.append(text('p',`Part lookup failed: ${e.message}`));}}
   }
-  async function showDiagram(model,route,routes,selectedPnc=''){
-    container.replaceChildren();const back=text('button','‹ Back to illustrations');back.onclick=async()=>renderDiagrams(model,categoryFor(route),route.group,route.subgroup,(await loadModel(model)).filter(r=>r.group===route.group&&r.subgroup===route.subgroup));container.append(back);
-    container.append(text('h2',route.illustration),text('p',`${model} · ${route.catalogue} · Group ${route.group} / Subgroup ${route.subgroup} · model-level route, not chassis-number fitment.`));
-    const notice=text('p','Image/hotspot candidate is quality-held. Geometry uses the recorded source layer or the owner-approved preview overlay where supplied.','warning');container.append(notice);
-    const viewer=text('section','','illustrationViewer');const frame=text('div','','illustrationImageFrame');const details=text('div','','illustrationPartResult');viewer.append(frame,details);container.append(viewer);
-    try{const data=await loadImage(route.illustration);const [width,height]=data.dimensions;const stage=text('div','','modelIllustrationStage');stage.style.aspectRatio=`${width}/${height}`;const image=document.createElement('img');image.className='modelIllustrationImage';image.alt=`${route.illustration}; model-level route, not chassis-number fitment`;image.src=imageUrl(route.illustration);image.onerror=()=>setStatus(`The candidate PNG for ${route.illustration} could not be loaded.`,true);stage.append(image);frame.append(stage);
-      for(const [i,h] of (data.hotspots||[]).entries()){const b=document.createElement('button');b.type='button';b.className='sourceHotspot'+(selectedPnc&&h.pnc===selectedPnc?' selectedSourceHotspot':'');b.style.left=`${h.x/width*100}%`;b.style.top=`${h.y/height*100}%`;b.style.width=`${h.w/width*100}%`;b.style.height=`${h.h/height*100}%`;b.style.zIndex=String(i+1);b.title=`PNC ${h.pnc} · recorded hotspot`;b.setAttribute('aria-label',`Select PNC ${h.pnc}`);b.onclick=()=>showHotspot(h,routes,details);stage.append(b);if(selectedPnc&&h.pnc===selectedPnc)showHotspot(h,routes,details);}
-      setStatus(`${route.illustration}: ${data.hotspots?.length||0} recorded hotspot rectangles. Model-level source routing only; no chassis fitment is asserted.`);
-    }catch(e){frame.append(text('p',`Image could not be shown: ${e.message}`));setStatus(e.message,true);}
-  }
-  async function renderModel(model){
+  async function renderModel(model, isCurrent = () => true){
+    const request = ++browseGeneration;
+    const current = () => request === browseGeneration && isCurrent();
     if(!model||!(generic.active?.models ?? modelNames).includes(model)){container.replaceChildren();return;}
-    try{const routes=await loadModel(model);renderCategories(model,routes);}
-    catch(e){container.replaceChildren(text('p',`Illustration routes unavailable: ${e.message}`));setStatus(e.message,true);}
+    try{const routes=await loadModel(model);if(current())renderCategories(model,routes);}
+    catch(e){if(current()){container.replaceChildren(text('p',`Illustration routes unavailable: ${e.message}`));setStatus(e.message,true);}}
   }
   async function openPart(model,catalogue,pnc){
     try{
@@ -160,10 +175,22 @@
       const ids=[...new Set(routes.map(r=>r.illustration))],matches=[];
       for(const id of ids){const data=await loadImage(id);if((data.hotspots||[]).some(h=>h.pnc===pnc))matches.push(...routes.filter(r=>r.illustration===id));}
       if(!matches.length){renderCategories(model,routes);setStatus(`${model} · ${catalogue} · PNC ${pnc}: no matching model/catalogue illustration hotspot is present in the candidate routes. No image relationship is inferred.`);container.scrollIntoView({block:'start'});return;}
-      const first=matches[0];await showDiagram(model,first,matches,pnc);container.scrollIntoView({block:'start'});
+      openSeries(matches);
     }catch(e){setStatus(`Could not open illustration: ${e.message}`,true);}
   }
   window.ASA_RENDER_MODEL_CATEGORIES=renderModel;
+  window.ASA_CLEAR_GENERIC_CATALOGUE = () => {
+    browseGeneration++;
+    window.ASA_GENERIC_VIEWER?.close();
+    if (container.dataset.catalogueOwner === 'generic') {
+      container.replaceChildren();
+      delete container.dataset.catalogueOwner;
+    }
+  };
+  window.addEventListener('asa-generic-dataset-changed', () => {
+    browseGeneration++;
+    window.ASA_GENERIC_VIEWER?.close(false);
+  });
   window.ASA_OPEN_SOURCE_PART_ILLUSTRATION=openPart;
   window.addEventListener('asa-general-model-filters-ready',()=>{});
   fetch('./data/illustration-models.json',{cache:'force-cache',credentials:'same-origin'}).then(r=>{if(!r.ok)throw new Error(`Model illustration index failed (HTTP ${r.status}).`);return r.json();}).then(d=>{

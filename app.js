@@ -73,7 +73,40 @@ $('genericSearch').onsubmit=e=>{
 $('query').addEventListener('focus',()=>{$('genericBrowse').open=false;});
 $('query').addEventListener('input',()=>{if(!$('query').value.trim()){v=null;$('vehicle').replaceChildren();$('groups').replaceChildren();}});
 
+let genericViewer = null;
+let drawingRequest = 0;
+
+function closeGenericViewer(restoreScroll = true) {
+ const viewer = genericViewer;
+ if (!viewer) return;
+ genericViewer = null;
+ drawingRequest++;
+ active = null;
+ activeSeries = [];
+ if ($('parts').open) $('parts').close();
+ $('partContent').replaceChildren();
+ $('canvas').replaceChildren();
+ $('drawing').hidden = true;
+ if ($('settingsPage').hidden) {
+  $('workspace').hidden = false;
+  if (restoreScroll) window.scrollTo(viewer.x, viewer.y);
+ } else {
+  settingsReturnView = 'workspace';
+ }
+}
+
+window.ASA_GENERIC_VIEWER = {
+ open(series, adapter) {
+  if (!series.length) return;
+  genericViewer = {...adapter, x: window.scrollX, y: window.scrollY};
+  diagramHistory = [];
+  draw(series[0], series, 0);
+ },
+ close: closeGenericViewer
+};
+
 function draw(d,series=null,index=0,position=null){
+ const request = ++drawingRequest;
  const restorePosition=()=>{if(!position)return;$('viewport').scrollTop=position.top;$('viewport').scrollLeft=position.left;window.scrollTo(position.x,position.y);};
  if(series){activeSeries=series;pageIndex=index;}
  $('previousPage').disabled=pageIndex===0;$('nextPage').disabled=pageIndex>=activeSeries.length-1;$('pageNavigation').hidden=activeSeries.length<2;$('pageCount').textContent='Diagram '+(pageIndex+1)+' of '+activeSeries.length;
@@ -82,6 +115,38 @@ function draw(d,series=null,index=0,position=null){
  active=d;$('previousImage').hidden=true;$('back').textContent=diagramHistory.length?'Back to previous diagram':'Back to diagrams';$('drawing').hidden=false;$('workspace').hidden=true;
  $('drawingTitle').textContent=d.illustration_id;$('canvas').replaceChildren();
  $('directImage').hidden=true;
+ const viewer = genericViewer;
+ if (viewer) {
+  $('referenceNotice').hidden = false;
+  $('referenceNotice').textContent = 'Model-level source diagrams. Confirm fitment by chassis.';
+  $('imageStatus').textContent = 'Loading image…';
+  $('canvas').style.width = '';
+  $('viewport').scrollTop = 0;
+  $('viewport').scrollLeft = 0;
+  scale = 1;
+  if (!position) $('drawing').scrollIntoView({block:'start'});
+  viewer.load(d).then(image => {
+   if (request !== drawingRequest || viewer !== genericViewer) return;
+   const diagram = {...d, width:image.width, height:image.height};
+   active = diagram;
+   renderDrawingImage(diagram, image.url, image.hotspots, hotspot => {
+    const dialog = $('parts');
+    const content = $('partContent');
+    const result = document.createElement('div');
+    result.append(text('p','Loading part details…'));
+    content.replaceChildren(result);
+    if (!dialog.open) dialog.showModal();
+    viewer.lookup(diagram, hotspot, result).catch(error => {
+     result.replaceChildren(text('p','Part lookup failed: ' + error.message));
+    });
+   }, restorePosition, position);
+  }).catch(error => {
+   if (request === drawingRequest && viewer === genericViewer) {
+    $('imageStatus').textContent = 'Image could not be shown: ' + error.message;
+   }
+  });
+  return;
+ }
  if(!r.pack.images[d.illustration_id]){
   $('imageStatus').textContent='Original image unavailable';
   $('canvas').append(text('p','This original illustration is missing from the supplied ASA data.'));return;
@@ -89,6 +154,14 @@ function draw(d,series=null,index=0,position=null){
  // Release the hidden gallery before decoding a fresh full-size image.
  $('groups').replaceChildren();releaseImages();
  const url=fullImageURL=newImageURL(d.illustration_id);
+ renderDrawingImage(d, url, r.hotspots(d.illustration_id), hotspot => {
+  const reference = diagramReference(hotspot);
+  if (reference) openReference(reference);
+  else lookup(hotspot.pnc);
+ }, restorePosition, position);
+}
+
+function renderDrawingImage(d, url, hotspots, openHotspot, restorePosition, position) {
  $('directImage').href=url;$('directImage').hidden=false;
  const img=document.createElement('img');
  img.className='diagramImage';img.alt='Original Mitsubishi exploded diagram';
@@ -96,15 +169,15 @@ function draw(d,series=null,index=0,position=null){
  img.onload=()=>{if(img.isConnected){$('imageStatus').textContent='Image ready · viewer 5';restorePosition();}};
  img.onerror=()=>{$('imageStatus').textContent='Image could not be decoded. Use Open image directly.';};
  $('imageStatus').textContent='Loading image…';$('canvas').append(img);img.src=url;
- for(const h of r.hotspots(d.illustration_id)){
-  const b=document.createElement('button');const reference=diagramReference(h);
+ for(const h of hotspots){
+  const b=document.createElement('button');const reference=genericViewer ? null : diagramReference(h);
   b.setAttribute('aria-label',reference?'Open reference '+reference.main+'-'+reference.sub:'PNC '+h.pnc);
-  b.dataset.pnc=h.pnc;b.onclick=()=>reference?openReference(reference):lookup(h.pnc);
+  b.dataset.pnc=h.pnc;b.onclick=()=>openHotspot(h);
   b.dataset.x=h.x;b.dataset.y=h.y;b.dataset.w=h.width;b.dataset.h=h.height;
   $('canvas').append(b);
  }
  scale=Math.min(1,$('viewport').clientWidth/d.width);resize();
- if(position)restorePosition();else{$('viewport').scrollTop=0;$('viewport').scrollLeft=0;$('drawing').scrollIntoView({block:'start'});}
+ if(position)restorePosition();else{$('viewport').scrollTop=0;$('viewport').scrollLeft=0;if(!genericViewer)$('drawing').scrollIntoView({block:'start'});}
 }
 function diagramReference(h){
  if(Number(h.flags)!==2)return null;
@@ -143,7 +216,7 @@ document.addEventListener('touchstart',e=>{
  const touch=e.touches[0],viewport=$('viewport');
  const inDrawing=!$('drawing').hidden;
  const inImage=inDrawing&&viewport.contains(e.target);
- const fit=inDrawing&&viewport.scrollLeft===0&&active.width*scale<=viewport.clientWidth+2;
+ const fit=inDrawing&&viewport.scrollLeft===0&&active?.width*scale<=viewport.clientWidth+2;
  // Fit-size image swipes turn bounded pages; right swipes elsewhere go back.
  if(!inImage||fit)
   pageSwipe={x:touch.clientX,y:touch.clientY,time:e.timeStamp,inImage,inDrawing};
@@ -162,11 +235,12 @@ document.addEventListener('touchend',e=>{
 },{passive:true});
 document.addEventListener('touchcancel',()=>{pageSwipe=null;},{passive:true});
 function goBack(){
+ if(genericViewer){closeGenericViewer();return;}
  if(diagramHistory.length){previousImage();return;}
  browseCategory=browseReturnCategory??browseCategory;browseSubgroup=null;select(v,true);
  $('drawing').hidden=true;$('workspace').hidden=false;restoreBrowsePosition(browseCategory);
 }
-function resize(){if(!active)return;$('canvas').style.width=active.width*scale+'px';$('canvas').style.height='auto';for(const b of $('canvas').querySelectorAll('button')){b.style.left=b.dataset.x*scale+'px';b.style.top=b.dataset.y*scale+'px';b.style.width=b.dataset.w*scale+'px';b.style.height=b.dataset.h*scale+'px'}$('zoomlevel').textContent=Math.round(scale*100)+'%'}
+function resize(){if(!active?.width)return;$('canvas').style.width=active.width*scale+'px';$('canvas').style.height='auto';for(const b of $('canvas').querySelectorAll('button')){b.style.left=b.dataset.x*scale+'px';b.style.top=b.dataset.y*scale+'px';b.style.width=b.dataset.w*scale+'px';b.style.height=b.dataset.h*scale+'px'}$('zoomlevel').textContent=Math.round(scale*100)+'%'}
 $('zoomin').onclick=()=>{scale=Math.min(4,scale*1.3);resize()};$('zoomout').onclick=()=>{scale=Math.max(.2,scale/1.3);resize()};$('back').onclick=goBack;let pinch=null;const distance=ts=>Math.hypot(ts[0].clientX-ts[1].clientX,ts[0].clientY-ts[1].clientY);$('viewport').addEventListener('touchstart',e=>{if(e.touches.length===2)pinch={distance:distance(e.touches),scale}},{passive:true});$('viewport').addEventListener('touchmove',e=>{if(e.touches.length===2&&pinch){e.preventDefault();scale=Math.max(.2,Math.min(4,pinch.scale*distance(e.touches)/pinch.distance));resize()}},{passive:false});$('viewport').addEventListener('touchend',()=>pinch=null);
 
 function cataloguePartApplications(number){
@@ -263,7 +337,7 @@ const asaCategories=[['Engine','11 12 13 14 15 16'],['PwrTrain','21 22 23 24 25 
 function categoryOf(d){return asaCategories.find(([,numbers])=>numbers.split(' ').includes(d.main_group))?.[0]||'Other';}
 function subgroupLabel(d){return groupNames[(v.generic?(v.filters.model||d.model):v.model)+'|'+d.main_group+'|'+d.sub_group]||('Group '+d.main_group+' / Subgroup '+d.sub_group);}
 function renderCatalogueBrowser(){
- const container=$('groups');container.replaceChildren();
+ const container=$('groups');delete container.dataset.catalogueOwner;container.replaceChildren();
  if(!catalogueDiagrams.length){container.append(text('p','No applicable diagrams in the imported data.'));return;}
  const categories=[...asaCategories.map(([name])=>name),'Other'].filter(name=>catalogueDiagrams.some(d=>categoryOf(d)===name));
  if(!categories.includes(browseCategory))browseCategory=null;
