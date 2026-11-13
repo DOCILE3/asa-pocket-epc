@@ -191,3 +191,15 @@ footer{display:flex;align-items:center;justify-content:space-between;gap:12px} f
   object-fit: contain;
   background: #fff;
 }
+
+#viewport.diagram-swipe-ready { touch-action: pan-y; }
+#viewport.diagram-sliding { position: relative; overflow: hidden; }
+#viewport .diagram-slide-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: auto;
+  display: block;
+  background: #fff;
+  pointer-events: none;
+}

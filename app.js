@@ -1,5 +1,5 @@
 import {createResolver} from './resolver.js?v=39';
-const $=id=>document.getElementById(id);let r,v,db,scale=1,active,fullImageURL,settingsReturnView="workspace",diagramHistory=[],activeSeries=[],pageIndex=0,savedVehicles=[],groupNames={};const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=value;return e};
+const $=id=>document.getElementById(id);let r,v,db,scale=1,active,settingsReturnView="workspace",diagramHistory=[],activeSeries=[],pageIndex=0,savedVehicles=[],groupNames={};const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=value;return e};
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('asa-pocket',1);req.onupgradeneeded=()=>req.result.createObjectStore('catalogue');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 function readPack(key='active'){return new Promise((resolve,reject)=>{const req=db.transaction('catalogue').objectStore('catalogue').get(key);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 function storePack(pack,key='active'){return new Promise((resolve,reject)=>{const tx=db.transaction('catalogue','readwrite');tx.objectStore('catalogue').put(pack,key);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error('Storage was interrupted'))})}
@@ -14,12 +14,12 @@ function updateSettingsSummaries(){if(!$('settingsPackSummary'))return;$('settin
 async function updateOfflineReadiness(){const output=$('offlineReadiness');if(!output)return;let shellCached=false;try{shellCached='caches'in window&&(await caches.keys()).some(key=>key.startsWith('asa-pocket-shell-'))}catch{}const catalogueStored=!!r;output.textContent=`App shell: ${shellCached?'installed':'not confirmed'} · Catalogue: ${catalogueStored?'stored on this device':'not imported'} · ${navigator.onLine?'Online':'Offline'}`}
 async function exportSavedVehicles(){if(!savedVehicles.length){$('backupStatus').textContent='There are no saved vehicles to export.';return}const data={format:'asa-saved-vehicles',schema:1,vehicles:savedVehicles};const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download='asa-pocket-saved-vehicles.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);$('backupStatus').textContent='Backup exported. Keep the file somewhere safe.'}
 async function restoreSavedVehicles(file){$('backupStatus').textContent='Checking saved vehicle backup…';try{if(file.size>65536)throw Error('This backup file is larger than expected.');const backup=JSON.parse(await file.text());if(backup?.format!=='asa-saved-vehicles'||backup.schema!==1||!Array.isArray(backup.vehicles)||backup.vehicles.length>8)throw Error('This is not a supported saved vehicle backup.');const incoming=[];const seen=new Set;for(const item of backup.vehicles){if(!item||typeof item.chassis!=='string'||typeof item.nickname!=='string')throw Error('The backup contains an invalid vehicle.');const chassis=item.chassis.trim().toUpperCase();if(!/^[A-Z0-9]+-[0-9]{7}$/.test(chassis)||item.nickname.length>80||seen.has(chassis))throw Error('The backup contains an invalid or duplicate vehicle.');seen.add(chassis);incoming.push({chassis,nickname:item.nickname.trim().slice(0,80)||chassis})}const merged=[...savedVehicles];for(const item of incoming)if(!merged.some(saved=>saved.chassis===item.chassis))merged.push(item);if(merged.length>8)throw Error('There is not room for all vehicles in this backup. Remove a saved vehicle, then restore again.');await storePack(merged,'savedVehicles');savedVehicles=merged;renderSavedVehicles();updateSettingsSummaries();$('backupStatus').textContent=`Backup restored. ${incoming.length} vehicle${incoming.length===1?'':'s'} checked; existing saved names were kept.`}catch(error){$('backupStatus').textContent=`Restore failed: ${error.message} Your saved vehicles are unchanged.`}}
-function clearCatalogue(){return deletePack().then(()=>{r=null;v=null;active=null;diagramHistory=[];activeSeries=[];pageIndex=0;catalogueDiagrams=[];browseCategory=null;browseSubgroup=null;browseReturnCategory=null;browsePositions.clear();partIndex=null;partRows=[];partOffset=0;releaseImages();$('results').replaceChildren();$('vehicle').replaceChildren();$('groups').replaceChildren();$('partSearchResults').replaceChildren();$('query').value='';$('partQuery').value='';$('workspace').hidden=true;$('drawing').hidden=true;$('setup').hidden=true;$('settingsPage').hidden=false;document.body.classList.add('settings-open');settingsReturnView='setup';$('dataStatus').textContent='No Chassis Data Pack Imported';$('connection').textContent='Personal offline catalogue';$('removeCatalogueDialog').close();updateSettingsSummaries();$('settingsStatus').textContent='Chassis data pack removed from this device. Saved vehicles and group names were kept.'}).catch(error=>{$('settingsStatus').textContent=`Could not remove the chassis data pack: ${error.message}`;$('removeCatalogueDialog').close()})}
+function clearCatalogue(){return deletePack().then(()=>{clearChassisImages();r=null;v=null;active=null;diagramHistory=[];activeSeries=[];pageIndex=0;catalogueDiagrams=[];browseCategory=null;browseSubgroup=null;browseReturnCategory=null;browsePositions.clear();partIndex=null;partRows=[];partOffset=0;releaseImages();$('results').replaceChildren();$('vehicle').replaceChildren();$('groups').replaceChildren();$('partSearchResults').replaceChildren();$('query').value='';$('partQuery').value='';$('workspace').hidden=true;$('drawing').hidden=true;$('setup').hidden=true;$('settingsPage').hidden=false;document.body.classList.add('settings-open');settingsReturnView='setup';$('dataStatus').textContent='No Chassis Data Pack Imported';$('connection').textContent='Personal offline catalogue';$('removeCatalogueDialog').close();updateSettingsSummaries();$('settingsStatus').textContent='Chassis data pack removed from this device. Saved vehicles and group names were kept.'}).catch(error=>{$('settingsStatus').textContent=`Could not remove the chassis data pack: ${error.message}`;$('removeCatalogueDialog').close()})}
 const imageURLs=new Map;
 function newImageURL(id){const raw=atob(r.pack.images[id]);const bytes=Uint8Array.from(raw,c=>c.charCodeAt(0));return URL.createObjectURL(new Blob([bytes],{type:'image/png'}))}
-function releaseImages(){for(const url of imageURLs.values())URL.revokeObjectURL(url);imageURLs.clear();if(fullImageURL){URL.revokeObjectURL(fullImageURL);fullImageURL=null}}
+function releaseImages(){for(const url of imageURLs.values())URL.revokeObjectURL(url);imageURLs.clear();}
 function imageURL(id){if(!imageURLs.has(id))imageURLs.set(id,newImageURL(id));return imageURLs.get(id)}
-function loaded(pack){partIndex=null;partRows=[];$('partSearchResults').replaceChildren();$('partSearchStatus').textContent='';$('morePartResults').hidden=true;releaseImages();r=createResolver(pack);$('setup').hidden=true;$('settingsPage').hidden=true;document.body.classList.remove('settings-open');$('workspace').hidden=false;$('dataStatus').textContent=`ASA ${pack.version} · ${pack.tables.vehicles.length.toLocaleString()} vehicles${pack.fixture?' · LOCAL TEST DATA':''}`;$('connection').textContent=navigator.onLine?'Ready · catalogue stored on this device':'Offline · catalogue available';renderSavedVehicles();populateGenericFilters();updateSettingsSummaries() }
+function loaded(pack){clearChassisImages();partIndex=null;partRows=[];$('partSearchResults').replaceChildren();$('partSearchStatus').textContent='';$('morePartResults').hidden=true;releaseImages();r=createResolver(pack);$('setup').hidden=true;$('settingsPage').hidden=true;document.body.classList.remove('settings-open');$('workspace').hidden=false;$('dataStatus').textContent=`ASA ${pack.version} · ${pack.tables.vehicles.length.toLocaleString()} vehicles${pack.fixture?' · LOCAL TEST DATA':''}`;$('connection').textContent=navigator.onLine?'Ready · catalogue stored on this device':'Offline · catalogue available';renderSavedVehicles();populateGenericFilters();updateSettingsSummaries() }
 async function importPack(blob){const returnToSettings=!$('settingsPage').hidden;$('importStatus').textContent='Reading and checking your catalogue…';try{const stream=blob.stream().pipeThrough(new DecompressionStream('gzip'));const pack=JSON.parse(await new Response(stream).text());if(pack.format==='asa-group-names')throw Error('Group names are included in the Generic Search Data Pack.');if(pack.format!=='asa-personal-pack'||pack.schema!==1||!pack.tables?.vehicles?.length||!pack.tables?.part_applications||!pack.images)throw Error('This is not a supported ASA data pack.');$('importStatus').textContent='Saving catalogue on this device…';await storePack(pack);if(navigator.storage?.persist)await navigator.storage.persist();loaded(pack);if(returnToSettings)showSettings('data')}catch(e){$('importStatus').textContent='Import failed: '+e.message+'. Your previously saved catalogue is unchanged.';if(returnToSettings){$('settingsStatus').textContent=$('importStatus').textContent;showSettings('data')}}}
 $('file').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)importPack(file)};$('vehicleBackupFile').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)restoreSavedVehicles(file)};$('settings').onclick=()=>{if(!$('settingsPage').hidden)closeSettings();else showSettings()};$('backSettings').onclick=closeSettings;$('backHome').onclick=()=>{$('setup').hidden=true;$('workspace').hidden=settingsReturnView!=='workspace';$('drawing').hidden=settingsReturnView!=='drawing';};
 $('setupDataPack').onclick=()=>showSettings('data');
@@ -75,10 +75,110 @@ $('query').addEventListener('input',()=>{if(!$('query').value.trim()){v=null;$('
 
 let genericViewer = null;
 let drawingRequest = 0;
+let slide = null;
+let suppressHotspotUntil = 0;
+const chassisImages = new Map();
+
+function discardImage(cache, key, entry) {
+ cache.delete(key);
+ if (entry.ownedUrl) URL.revokeObjectURL(entry.ownedUrl);
+}
+
+function clearChassisImages() {
+ for (const [key, entry] of chassisImages) discardImage(chassisImages, key, entry);
+}
+
+function resetSlide() {
+ if (!slide) return;
+ const {preview, animation, incoming} = slide;
+ slide = null;
+ animation?.cancel();
+ incoming?.cancel();
+ preview.remove();
+ $('canvas').style.transform = '';
+ $('viewport').classList.remove('diagram-sliding');
+}
+
+function prepareDrawingImage(viewer, diagram) {
+ const cache = viewer?.images ?? chassisImages;
+ const key = diagram.illustration_id;
+ if (!cache.has(key)) {
+  const entry = {};
+  cache.set(key, entry);
+  entry.promise = (async () => {
+   const image = viewer ? await viewer.load(diagram) : {
+    width:diagram.width, height:diagram.height, url:entry.ownedUrl = newImageURL(key),
+    hotspots:r.hotspots(key)
+   };
+   const img = new Image(image.width, image.height);
+   img.src = image.url;
+   await img.decode();
+   return entry.ready = {...image, img};
+  })().catch(error => {
+   if (cache.get(key) === entry) discardImage(cache, key, entry);
+   throw error;
+  });
+ }
+ return cache.get(key);
+}
+
+function warmAdjacentImages(viewer) {
+ const nearby = activeSeries.slice(Math.max(0, pageIndex - 1), pageIndex + 2);
+ const keys = new Set(nearby.map(diagram => diagram.illustration_id));
+ const cache = viewer?.images ?? chassisImages;
+ for (const [key, entry] of cache) {
+  if (!keys.has(key)) discardImage(cache, key, entry);
+ }
+ for (const diagram of nearby) {
+  if (viewer || r.pack.images[diagram.illustration_id]) prepareDrawingImage(viewer, diagram).promise.catch(() => {});
+ }
+}
+
+function dragDiagram(dx) {
+ const viewport = $('viewport');
+ const direction = dx < 0 ? 1 : -1;
+ if (slide?.direction !== direction) resetSlide();
+ if (!slide) {
+  const next = activeSeries[pageIndex + direction];
+  if (!next || (!genericViewer && !r.pack.images[next.illustration_id])) return;
+  const image = prepareDrawingImage(genericViewer, next).ready;
+  if (!image) return;
+  const preview = image.img.cloneNode(false);
+  preview.className = 'diagram-slide-preview';
+  preview.alt = '';
+  preview.setAttribute('aria-hidden', 'true');
+  preview.draggable = false;
+  preview.style.width = Math.min(image.width, viewport.clientWidth) + 'px';
+  viewport.append(preview);
+  viewport.classList.add('diagram-sliding');
+  slide = {preview, direction, width:viewport.clientWidth, offset:0};
+ }
+ slide.offset = Math.max(-slide.width, Math.min(slide.width, dx));
+ $('canvas').style.transform = `translateX(${slide.offset}px)`;
+ slide.preview.style.transform = `translateX(${slide.offset + direction * slide.width}px)`;
+}
+
+function finishSlide(advance) {
+ if (!slide || slide.animation) return;
+ const current = slide;
+ const distance = advance ? -current.direction * current.width : 0;
+ const transform = x => ({transform:`translateX(${x}px)`});
+ const options = {duration:matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 190,easing:'ease-out',fill:'forwards'};
+ current.animation = $('canvas').animate([transform(current.offset),transform(distance)],options);
+ const side = current.direction * current.width;
+ current.incoming = current.preview.animate([transform(current.offset + side),transform(distance + side)],options);
+ current.animation.finished.then(() => {
+  if (slide !== current) return;
+  resetSlide();
+  if (advance) cycleDiagram(current.direction);
+ }).catch(() => {});
+}
 
 function closeGenericViewer(restoreScroll = true) {
  const viewer = genericViewer;
  if (!viewer) return;
+ resetSlide();
+ $('viewport').classList.remove('diagram-swipe-ready');
  genericViewer = null;
  drawingRequest++;
  active = null;
@@ -98,7 +198,8 @@ function closeGenericViewer(restoreScroll = true) {
 window.ASA_GENERIC_VIEWER = {
  open(series, adapter) {
   if (!series.length) return;
-  genericViewer = {...adapter, x: window.scrollX, y: window.scrollY};
+  clearChassisImages();
+  genericViewer = {...adapter, images:new Map(), x: window.scrollX, y: window.scrollY};
   diagramHistory = [];
   draw(series[0], series, 0);
  },
@@ -106,6 +207,8 @@ window.ASA_GENERIC_VIEWER = {
 };
 
 function draw(d,series=null,index=0,position=null){
+ resetSlide();
+ $('viewport').classList.remove('diagram-swipe-ready');
  const request = ++drawingRequest;
  const restorePosition=()=>{if(!position)return;$('viewport').scrollTop=position.top;$('viewport').scrollLeft=position.left;window.scrollTo(position.x,position.y);};
  if(series){activeSeries=series;pageIndex=index;}
@@ -125,7 +228,8 @@ function draw(d,series=null,index=0,position=null){
   $('viewport').scrollLeft = 0;
   scale = 1;
   if (!position) $('drawing').scrollIntoView({block:'start'});
-  viewer.load(d).then(image => {
+  const entry = prepareDrawingImage(viewer, d);
+  const showImage = image => {
    if (request !== drawingRequest || viewer !== genericViewer) return;
    const diagram = {...d, width:image.width, height:image.height};
    active = diagram;
@@ -139,8 +243,11 @@ function draw(d,series=null,index=0,position=null){
     viewer.lookup(diagram, hotspot, result).catch(error => {
      result.replaceChildren(text('p','Part lookup failed: ' + error.message));
     });
-   }, restorePosition, position);
-  }).catch(error => {
+   }, restorePosition, position, image.img);
+   warmAdjacentImages(viewer);
+  };
+  if (entry.ready) showImage(entry.ready);
+  else entry.promise.then(showImage).catch(error => {
    if (request === drawingRequest && viewer === genericViewer) {
     $('imageStatus').textContent = 'Image could not be shown: ' + error.message;
    }
@@ -153,30 +260,40 @@ function draw(d,series=null,index=0,position=null){
  }
  // Release the hidden gallery before decoding a fresh full-size image.
  $('groups').replaceChildren();releaseImages();
- const url=fullImageURL=newImageURL(d.illustration_id);
- renderDrawingImage(d, url, r.hotspots(d.illustration_id), hotspot => {
-  const reference = diagramReference(hotspot);
-  if (reference) openReference(reference);
-  else lookup(hotspot.pnc);
- }, restorePosition, position);
+ const entry = prepareDrawingImage(null, d);
+ const showImage = image => {
+  if (request !== drawingRequest) return;
+  renderDrawingImage(d, image.url, image.hotspots, hotspot => {
+   const reference = diagramReference(hotspot);
+   if (reference) openReference(reference);
+   else lookup(hotspot.pnc);
+  }, restorePosition, position, image.img);
+  warmAdjacentImages(null);
+ };
+ if (entry.ready) showImage(entry.ready);
+ else entry.promise.then(showImage).catch(error => {
+  if (request === drawingRequest) $('imageStatus').textContent = 'Image could not be shown: ' + error.message;
+ });
 }
 
-function renderDrawingImage(d, url, hotspots, openHotspot, restorePosition, position) {
+function renderDrawingImage(d, url, hotspots, openHotspot, restorePosition, position, decodedImage) {
  $('directImage').href=url;$('directImage').hidden=false;
- const img=document.createElement('img');
+ const img=decodedImage || document.createElement('img');
  img.className='diagramImage';img.alt='Original Mitsubishi exploded diagram';
  img.decoding='async';img.draggable=false;img.width=d.width;img.height=d.height;
  img.onload=()=>{if(img.isConnected){$('imageStatus').textContent='Image ready · viewer 5';restorePosition();}};
  img.onerror=()=>{$('imageStatus').textContent='Image could not be decoded. Use Open image directly.';};
- $('imageStatus').textContent='Loading image…';$('canvas').append(img);img.src=url;
+ $('imageStatus').textContent=decodedImage ? 'Image ready · viewer 5' : 'Loading image…';
+ $('canvas').append(img);
+ if (!decodedImage) img.src=url;
  for(const h of hotspots){
   const b=document.createElement('button');const reference=genericViewer ? null : diagramReference(h);
   b.setAttribute('aria-label',reference?'Open reference '+reference.main+'-'+reference.sub:'PNC '+h.pnc);
-  b.dataset.pnc=h.pnc;b.onclick=()=>openHotspot(h);
+  b.dataset.pnc=h.pnc;b.onclick=()=>{if(!slide && performance.now() >= suppressHotspotUntil)openHotspot(h);};
   b.dataset.x=h.x;b.dataset.y=h.y;b.dataset.w=h.width;b.dataset.h=h.height;
   $('canvas').append(b);
  }
- scale=Math.min(1,$('viewport').clientWidth/d.width);resize();
+ scale=position?.scale ?? Math.min(1,$('viewport').clientWidth/d.width);resize();
  if(position)restorePosition();else{$('viewport').scrollTop=0;$('viewport').scrollLeft=0;if(!genericViewer)$('drawing').scrollIntoView({block:'start'});}
 }
 function diagramReference(h){
@@ -196,13 +313,28 @@ function openReference(reference){
 function previousImage(){
  const previous=diagramHistory.pop();if(!previous)return;
  browseCategory=previous.category;browseSubgroup=previous.subgroup;
- draw(previous.diagram,previous.series||[previous.diagram],previous.index||0,previous.x==null?null:{x:previous.x,y:previous.y,top:previous.top,left:previous.left});scale=previous.scale;resize();
+ draw(previous.diagram,previous.series||[previous.diagram],previous.index||0,{x:previous.x,y:previous.y,top:previous.top,left:previous.left,scale:previous.scale});
  $('viewport').scrollTop=previous.top;$('viewport').scrollLeft=previous.left;
 }
-function cycleDiagram(step){
+let pageTurn = 0;
+async function cycleDiagram(step){
  if(activeSeries.length<2)return;
  const index=pageIndex+step;if(index<0||index>=activeSeries.length)return;
  const position={x:window.scrollX,y:window.scrollY,top:$('viewport').scrollTop,left:$('viewport').scrollLeft};
+ const target = activeSeries[index];
+ const request = drawingRequest;
+ const turn = ++pageTurn;
+ if (genericViewer || r.pack.images[target.illustration_id]) {
+  const entry = prepareDrawingImage(genericViewer, target);
+  if (!entry.ready) {
+   try { await entry.promise; }
+   catch (error) {
+    if (request === drawingRequest && turn === pageTurn) $('imageStatus').textContent = 'Next image could not be shown: ' + error.message;
+    return;
+   }
+  }
+ }
+ if (request !== drawingRequest || turn !== pageTurn || $('drawing').hidden) return;
  draw(activeSeries[index],activeSeries,index,position);
 }
 $('previousImage').onclick=previousImage;
@@ -212,7 +344,9 @@ function swipeDirection(start,end){
 }
 let pageSwipe=null;
 document.addEventListener('touchstart',e=>{
- pageSwipe=null;if(e.touches.length!==1||$('parts').open||$('saveVehicleDialog').open)return;
+ pageSwipe=null;
+ if (slide?.animation) return;
+ if(e.touches.length!==1||$('parts').open||$('saveVehicleDialog').open){resetSlide();return;}
  const touch=e.touches[0],viewport=$('viewport');
  const inDrawing=!$('drawing').hidden;
  const inImage=inDrawing&&viewport.contains(e.target);
@@ -221,11 +355,30 @@ document.addEventListener('touchstart',e=>{
  if(!inImage||fit)
   pageSwipe={x:touch.clientX,y:touch.clientY,time:e.timeStamp,inImage,inDrawing};
 },{passive:true});
-document.addEventListener('touchmove',e=>{if(e.touches.length!==1)pageSwipe=null;},{passive:true});
+document.addEventListener('touchmove',e=>{
+ if(e.touches.length!==1){pageSwipe=null;resetSlide();return;}
+ if (!pageSwipe?.inImage || slide?.animation || !active?.width) return;
+ const touch = e.touches[0];
+ const dx = touch.clientX - pageSwipe.x;
+ const dy = touch.clientY - pageSwipe.y;
+ if (Math.abs(dy) > 12 && Math.abs(dy) >= Math.abs(dx)) {
+  pageSwipe = null;
+  resetSlide();
+ } else if (Math.abs(dx) >= 8 && Math.abs(dx) > Math.abs(dy)) {
+  suppressHotspotUntil = performance.now() + 350;
+  dragDiagram(dx);
+ }
+},{passive:true});
 document.addEventListener('touchend',e=>{
  const start=pageSwipe;pageSwipe=null;if(!start||e.touches.length||e.changedTouches.length!==1)return;
  const touch=e.changedTouches[0],direction=swipeDirection(start,{x:touch.clientX,y:touch.clientY,time:e.timeStamp});
+ if(slide){
+  suppressHotspotUntil = performance.now() + 350;
+  finishSlide(direction === slide.direction);
+  return;
+ }
  if(!direction)return;
+ if(start.inImage) suppressHotspotUntil = performance.now() + 350;
  if(start.inDrawing&&activeSeries.length>1&&(start.inImage||direction===-1)){
   if(direction===1||pageIndex>0){cycleDiagram(direction);return;}
  }
@@ -233,14 +386,18 @@ document.addEventListener('touchend',e=>{
   if(start.inDrawing)goBack();else document.getElementById('browseBack')?.click();
  }
 },{passive:true});
-document.addEventListener('touchcancel',()=>{pageSwipe=null;},{passive:true});
+document.addEventListener('touchcancel',()=>{pageSwipe=null;if(!slide?.animation)resetSlide();},{passive:true});
 function goBack(){
  if(genericViewer){closeGenericViewer();return;}
  if(diagramHistory.length){previousImage();return;}
+ resetSlide();
+ drawingRequest++;
+ $('viewport').classList.remove('diagram-swipe-ready');
+ clearChassisImages();
  browseCategory=browseReturnCategory??browseCategory;browseSubgroup=null;select(v,true);
  $('drawing').hidden=true;$('workspace').hidden=false;restoreBrowsePosition(browseCategory);
 }
-function resize(){if(!active?.width)return;$('canvas').style.width=active.width*scale+'px';$('canvas').style.height='auto';for(const b of $('canvas').querySelectorAll('button')){b.style.left=b.dataset.x*scale+'px';b.style.top=b.dataset.y*scale+'px';b.style.width=b.dataset.w*scale+'px';b.style.height=b.dataset.h*scale+'px'}$('zoomlevel').textContent=Math.round(scale*100)+'%'}
+function resize(){if(!active?.width)return;$('canvas').style.width=active.width*scale+'px';$('canvas').style.height='auto';for(const b of $('canvas').querySelectorAll('button')){b.style.left=b.dataset.x*scale+'px';b.style.top=b.dataset.y*scale+'px';b.style.width=b.dataset.w*scale+'px';b.style.height=b.dataset.h*scale+'px'}$('zoomlevel').textContent=Math.round(scale*100)+'%';const viewport=$('viewport');viewport.classList.toggle('diagram-swipe-ready',activeSeries.length>1&&active.width*scale<=viewport.clientWidth+2);}
 $('zoomin').onclick=()=>{scale=Math.min(4,scale*1.3);resize()};$('zoomout').onclick=()=>{scale=Math.max(.2,scale/1.3);resize()};$('back').onclick=goBack;let pinch=null;const distance=ts=>Math.hypot(ts[0].clientX-ts[1].clientX,ts[0].clientY-ts[1].clientY);$('viewport').addEventListener('touchstart',e=>{if(e.touches.length===2)pinch={distance:distance(e.touches),scale}},{passive:true});$('viewport').addEventListener('touchmove',e=>{if(e.touches.length===2&&pinch){e.preventDefault();scale=Math.max(.2,Math.min(4,pinch.scale*distance(e.touches)/pinch.distance));resize()}},{passive:false});$('viewport').addEventListener('touchend',()=>pinch=null);
 
 function cataloguePartApplications(number){
