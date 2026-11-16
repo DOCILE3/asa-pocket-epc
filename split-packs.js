@@ -66,10 +66,12 @@
   classification.add(new Option('Any', ''));
   classLabel.append(classification);
   fields.append(modelLabel, classLabel);
-  for (const [id, title] of [['sourceOption','Option'],['sourceExterior','Exterior'],['sourceInterior','Interior']]) {
+  for (const [id, title, placeholder = ''] of [
+    ['sourceOption','Option'], ['sourceExterior','Exterior'], ['sourceInterior','Interior'], ['sourceDate','Date','Any']
+  ]) {
     const label = el('label', {for:id, text:title});
     const select = el('select', {id, disabled:'disabled', 'aria-label':title + ' (unavailable in this pack)'});
-    select.add(new Option('', ''));
+    select.add(new Option(placeholder, ''));
     label.append(select);
     fields.append(label);
   }
