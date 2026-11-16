@@ -14,7 +14,6 @@ const DB = openDb();
 let activePack = null;
 let partSearch = null;
 let browseRequest = 0;
-let modelClassifications = new Map();
 
 function openDb() {
   return new Promise((resolve, reject) => {
@@ -196,15 +195,6 @@ function updateUi() {
   } else {
     setStatus('Not installed. Choose the single 436-model download once; searches do not require selecting a file again.');
   }
-  updateClassificationOptions();
-}
-
-function updateClassificationOptions() {
-  const select = $('sourceClassFilter');
-  const model = $('sourceModel').value;
-  const choices = modelClassifications.get(model) ?? [];
-  select.replaceChildren(new Option('Any', ''), ...choices.map(value => new Option(value, value)));
-  select.disabled = choices.length === 0;
 }
 
 function setBrowseStatus(message, bad = false) {
@@ -270,26 +260,21 @@ async function* readModelRows(pack, spec, signal) {
   if (seen !== spec.rows) throw new Error(`Expected ${spec.rows} rows for ${spec.model}, read ${seen}.`);
 }
 
-function classificationValues(record) {
-  return (getField(record, 'E2_Classification')?.items || []).map(item => item.value).filter(Boolean);
-}
-
 async function searchModel() {
   const request = ++browseRequest;
   const pack = activePack;
   if (!pack) return setBrowseStatus('Install the Generic Search Data Pack first.', true);
   const modelName = $('sourceModel').value;
   if (!modelName) return setBrowseStatus('Choose a model to browse.', true);
-  const selectedClass = $('sourceClassFilter').value;
   const spec = pack.manifest.models.find(item => item.model === modelName);
   if (!spec) return setBrowseStatus('The selected model is missing from the installed pack.', true);
   const out = $('results'); out.replaceChildren();
   setBrowseStatus(`Searching ${modelName} source rows…`);
   try {
     let shown = 0;
-    for await (const record of readModelRows(pack, spec)) {
+    for await (const _row of readModelRows(pack, spec)) {
       if (pack !== activePack || request !== browseRequest) return;
-      if (!selectedClass || classificationValues(record).includes(selectedClass)) shown++;
+      shown++;
     }
     if (pack !== activePack || request !== browseRequest) return;
     setBrowseStatus(`${modelName}: ${shown.toLocaleString()} matching model-level source rows.`);
@@ -412,30 +397,15 @@ $('sourceModelSearchForm').addEventListener('submit', event => { event.preventDe
 $('sourceModelSearchForm').addEventListener('reset', event => {
   event.preventDefault();
   $('sourceModel').value = '';
-  updateClassificationOptions();
   browseRequest++;
   setBrowseStatus('');
   window.ASA_CLEAR_GENERIC_CATALOGUE?.();
 });
 $('sourceModel').addEventListener('change', () => {
-  updateClassificationOptions();
   browseRequest++;
   setBrowseStatus('');
 });
 $('genericPackPartForm').addEventListener('submit', event => { event.preventDefault(); findPartAcrossModels(); });
 $('genericPartCancel').addEventListener('click', () => partSearch?.abort());
 $('removeSourcePack').addEventListener('click', removePack);
-async function loadFilterIndex() {
-  try {
-    const response = await fetch('./data/generalBrowse/model-filter-index.json', { cache: 'force-cache', credentials: 'same-origin' });
-    if (!response.ok) throw new Error(`Model filter index download failed (HTTP ${response.status}).`);
-    const bytes = await response.arrayBuffer();
-    if (await digest(bytes) !== '08b0d252d1008657d51f31f0da8bf324c821891165e7ac9a173867b3e4acf223') throw new Error('Model filter index hash does not match the pinned source-derived index.');
-    const index = JSON.parse(new TextDecoder().decode(bytes));
-    if (index.schema !== 'asa-general-model-filter-index-v1' || index.source_pack_sha256 !== 'a69c051ed95991d0235e8f3a00a6a6fb6e7afaecf41cea50ad17b00337045b2c' || index.source_models !== 436 || index.source_rows !== 1282060 || index.models?.length !== 436) throw new Error('Model filter index identity or coverage is invalid.');
-    modelClassifications = new Map(index.models.map(row => [row.model, row.raw_classifications]));
-    updateClassificationOptions();
-  } catch (error) { setBrowseStatus(`Classification options unavailable: ${error.message}`, true); }
-}
-loadFilterIndex();
 const initialLoad = loadActive();

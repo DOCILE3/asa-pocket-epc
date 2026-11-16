@@ -61,17 +61,14 @@
   const model = el('select', {id:'sourceModel', 'aria-label':'Generic Search model'});
   model.add(new Option('Choose model', ''));
   modelLabel.append(model);
-  const classLabel = el('label', {for:'sourceClassFilter', text:'Classification'});
-  const classification = el('select', {id:'sourceClassFilter', disabled:'disabled'});
-  classification.add(new Option('Any', ''));
-  classLabel.append(classification);
-  fields.append(modelLabel, classLabel);
-  for (const [id, title, placeholder = ''] of [
-    ['sourceOption','Option'], ['sourceExterior','Exterior'], ['sourceInterior','Interior'], ['sourceDate','Date','Any']
+  fields.append(modelLabel);
+  for (const [id, title] of [
+    ['sourceClassFilter','Classification'], ['sourceDate','Date'], ['sourceOption','Option'],
+    ['sourceInterior','Interior'], ['sourceExterior','Exterior']
   ]) {
     const label = el('label', {for:id, text:title});
-    const select = el('select', {id, disabled:'disabled', 'aria-label':title + ' (unavailable in this pack)'});
-    select.add(new Option(placeholder, ''));
+    const select = el('select', {id, disabled:'disabled'});
+    select.add(new Option('Any', ''));
     label.append(select);
     fields.append(label);
   }
@@ -158,7 +155,7 @@
   (async () => {
     try {
       await loadScript('./generic-v81.js?v=2');
-      await loadScript('./model-browse.js?v=11');
+      await loadScript('./model-browse.js?v=12');
       await loadScript('./model-illustrations.js?v=7');
       updateHome();
     } catch (error) {
