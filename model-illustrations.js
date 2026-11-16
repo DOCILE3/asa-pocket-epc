@@ -106,7 +106,7 @@
     const dedup = [...new Map(routes.map(r=>[`${r.catalogue}|${r.model}|${r.group}|${r.subgroup}|${r.illustration}`,r])).values()];
     if (!dedup.length) { container.append(text('p', `${model}: no model-to-illustration routes are listed.`)); return; }
     container.append(text('h2', 'Browse catalogue'));
-    container.append(text('p', `${model} · source illustration routes. This is model/catalogue navigation, not chassis-number fitment. Tiles use compact 294×162 ASA source artwork matched by group/subgroup code. Category tiles use a representative compact subgroup image; exact category-level selection and ASA runtime behavior are not asserted.`));
+    container.append(text('p', model));
     const names=[...categories.map(([n])=>n),'Other'].filter(n=>dedup.some(r=>categoryFor(r)===n));
     const grid=text('div','','categoryGrid');
     for(const name of names){const rows=dedup.filter(r=>categoryFor(r)===name);const btn=document.createElement('button');btn.className='browseImageTile categoryImageTile';appendTilePreview(btn,rows[0]?.group,rows[0]?.subgroup);const copy=text('span',name,'browseTileCopy');copy.append(text('small',`${new Set(rows.map(r=>`${r.group}|${r.subgroup}`)).size} subgroups`));btn.append(copy);btn.onclick=()=>renderSubgroups(model,name,rows);grid.append(btn);}

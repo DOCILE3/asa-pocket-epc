@@ -156,7 +156,7 @@
     try {
       await loadScript('./generic-v81.js?v=2');
       await loadScript('./model-browse.js?v=12');
-      await loadScript('./model-illustrations.js?v=7');
+      await loadScript('./model-illustrations.js?v=8');
       updateHome();
     } catch (error) {
       genericSummary.textContent = 'Generic Search Data Pack features could not start: ' + error.message;
