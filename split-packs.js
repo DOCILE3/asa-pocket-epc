@@ -113,8 +113,14 @@
   legacyPartSearch.hidden = true;
 
   const tabs = el('div', {class:'homeTabs', role:'tablist', 'aria-label':'Catalogue views'});
+  const savedVehiclesSection = $('savedVehicles');
+  savedVehiclesSection.querySelector('h2').textContent = 'Vehicles';
+  $('savedVehicleCount').hidden = true;
+  $('savedVehicleList').before(el('p', {id:'savedVehicleLabel', class:'savedVehicleLabel', text:'Saved vehicle'}));
+  const vehicleSearch = el('section', {class:'vehicleSearchLayout chassisOnly'});
+  vehicleSearch.append(savedVehiclesSection, $('searchForm'));
   const panels = [
-    ['vehicles', 'Vehicles', ['savedVehicles','searchForm','results','vehicle','groups'].map($)],
+    ['vehicles', 'Vehicles', [vehicleSearch, ...['results','vehicle','groups'].map($)]],
     ['parts', 'Find a part', [genericPanel]],
     ['generic', 'Generic search', [genericDetails, el('div', {id:'genericGroups'})]]
   ];
@@ -171,7 +177,6 @@
   new MutationObserver(updatePackControls).observe(status, {childList:true, characterData:true, subtree:true});
   removeButton.addEventListener('click', () => window.ASA_REMOVE_BROWSE_PACK?.());
 
-  for (const id of ['savedVehicles','searchForm']) $('workspace').querySelector('#'+id)?.classList.add('chassisOnly');
   const updateHome = () => {
     const genericReady = !!model.options[1];
     const dataLabel = $('dataStatus').textContent.trim();

@@ -212,3 +212,11 @@ footer{display:flex;align-items:center;justify-content:space-between;gap:12px} f
 body:has(#workspace:not([hidden])) .homePanel :is(.partSearchLayout,#genericBrowse){margin-top:0;border:1px solid #3a4652;border-radius:15px;padding:16px;background:#1c2229}
 .homePanel #genericBrowse h2{margin:0}
 :root[data-theme="light"] body:has(#workspace:not([hidden])) .homePanel :is(.partSearchLayout,#genericBrowse){background:var(--asa-light-surface);border-color:var(--asa-light-border)}
+
+.vehicleSearchLayout{border:1px solid #3a4652;border-radius:15px;padding:16px;background:#1c2229}
+body:has(#workspace:not([hidden])) .vehicleSearchLayout #savedVehicles{margin-bottom:14px}
+body:has(#workspace:not([hidden])) .vehicleSearchLayout #searchForm{margin-top:0}
+.vehicleSearchLayout .savedVehicleLabel{margin:12px 0 6px;font-size:.85rem}
+.vehicleSearchLayout #savedVehicleStatus:empty{display:none}
+body:has(#workspace:not([hidden])) .homePanel :is(.vehicleSearchLayout,.partSearchLayout) .searchAction{flex:0 0 max(96px,25%);padding-inline:6px;white-space:nowrap}
+:root[data-theme="light"] .vehicleSearchLayout{background:var(--asa-light-surface);border-color:var(--asa-light-border)}
