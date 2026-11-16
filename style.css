@@ -220,3 +220,68 @@ body:has(#workspace:not([hidden])) .vehicleSearchLayout #searchForm{margin-top:0
 .vehicleSearchLayout #savedVehicleStatus:empty{display:none}
 body:has(#workspace:not([hidden])) .homePanel :is(.vehicleSearchLayout,.partSearchLayout) .searchAction{flex:0 0 max(96px,25%);padding-inline:6px;white-space:nowrap}
 :root[data-theme="light"] .vehicleSearchLayout{background:var(--asa-light-surface);border-color:var(--asa-light-border)}
+
+/* Shared three-tab home styling */
+body:has(#workspace:not([hidden])) .homePanel :is(.vehicleSearchLayout,.partSearchLayout,#genericBrowse){
+  border:1px solid #3a4652;
+  border-radius:15px;
+  padding:16px;
+  background:#1c2229;
+}
+body:has(#workspace:not([hidden])) .homePanel :is(.vehicleSearchLayout,.partSearchLayout,#genericBrowse)>h2,
+body:has(#workspace:not([hidden])) .homePanel :is(.vehicleSearchLayout,.partSearchLayout,#genericBrowse) .sectionTitle h2{
+  margin:0 0 16px;
+  font-size:1.4rem;
+  line-height:1.25;
+  font-weight:700;
+}
+body:has(#workspace:not([hidden])) .homePanel :is(#searchForm,.partSearchLayout form,#sourceModelSearch form) label,
+body:has(#workspace:not([hidden])) .homePanel .savedVehicleLabel{
+  display:block;
+  margin:12px 0 8px;
+  color:#c3ccd5;
+  font-size:.9rem;
+  font-weight:650;
+  line-height:1.35;
+  letter-spacing:0;
+  text-transform:none;
+}
+body:has(#workspace:not([hidden])) .homePanel :is(#searchForm,.partSearchLayout form,#sourceModelSearch form) input,
+body:has(#workspace:not([hidden])) .homePanel .genericFields select{
+  min-height:48px;
+  font-size:1rem;
+  font-weight:400;
+  line-height:1.35;
+}
+body:has(#workspace:not([hidden])) .homePanel .genericFields{gap:14px 12px}
+body:has(#workspace:not([hidden])) .homePanel .genericFields select{margin-top:6px}
+body:has(#workspace:not([hidden])) .homePanel .search .searchAction{
+  min-height:60px;
+  font-size:1rem;
+  font-weight:700;
+}
+body:has(#workspace:not([hidden])) .homePanel #sourceModelSearch .vehicleActions{margin-top:16px}
+body:has(#workspace:not([hidden])) .homePanel #sourceModelSearch .vehicleActions button[type="submit"]{
+  background:var(--asa-ralliart-red);
+  border-color:var(--asa-ralliart-red);
+  color:#fff;
+  font-weight:700;
+}
+body:has(#workspace:not([hidden])) .homePanel #sourceModelSearch .vehicleActions button[type="reset"]{
+  background:#25303a;
+  border-color:#495560;
+  color:#edf1f5;
+}
+:root[data-theme="light"] body:has(#workspace:not([hidden])) .homePanel :is(.vehicleSearchLayout,.partSearchLayout,#genericBrowse){
+  background:var(--asa-light-surface);
+  border-color:var(--asa-light-border);
+}
+:root[data-theme="light"] body:has(#workspace:not([hidden])) .homePanel :is(#searchForm,.partSearchLayout form,#sourceModelSearch form) label,
+:root[data-theme="light"] body:has(#workspace:not([hidden])) .homePanel .savedVehicleLabel{
+  color:var(--asa-light-muted);
+}
+:root[data-theme="light"] body:has(#workspace:not([hidden])) .homePanel #sourceModelSearch .vehicleActions button[type="reset"]{
+  background:var(--asa-light-raised);
+  border-color:var(--asa-light-border);
+  color:var(--asa-light-text);
+}
