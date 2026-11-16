@@ -70,7 +70,6 @@ $('genericSearch').onsubmit=e=>{
  select({generic:true,filters,model:filters.model||'',classification:filters.classification||'',exterior:filters.exterior||'',interior:filters.interior||'',opc:filters.opc||'',option_ids:'',production_period:null});
  $('groups').scrollIntoView({block:'start'});
 };
-$('query').addEventListener('focus',()=>{$('genericBrowse').open=false;});
 $('query').addEventListener('input',()=>{if(!$('query').value.trim()){v=null;$('vehicle').replaceChildren();$('groups').replaceChildren();}});
 
 let genericViewer = null;
@@ -383,7 +382,7 @@ document.addEventListener('touchend',e=>{
   if(direction===1||pageIndex>0){cycleDiagram(direction);return;}
  }
  if(direction===-1){
-  if(start.inDrawing)goBack();else document.getElementById('browseBack')?.click();
+  if(start.inDrawing)goBack();else document.querySelector('.homePanel:not([hidden]) :is(#browseBack,#genericBrowseBack)')?.click();
  }
 },{passive:true});
 document.addEventListener('touchcancel',()=>{pageSwipe=null;if(!slide?.animation)resetSlide();},{passive:true});

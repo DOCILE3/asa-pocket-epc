@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const container = $('groups');
+  const container = $('genericGroups');
   const modelSelect = $('generic_model');
   if (!container || !modelSelect) return;
   $('modelIllustrationBrowse')?.remove();
@@ -114,7 +114,7 @@
   }
   function renderSubgroups(model, name, rows) {
     const back = text('button','‹ Back to categories');
-    back.id = 'browseBack';
+    back.id = 'genericBrowseBack';
     back.onclick = () => {
       container.replaceChildren(...previous.nodes);
       window.scrollTo(previous.x, previous.y);

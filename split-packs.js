@@ -109,13 +109,59 @@
   viewer.append(el('p', {id:'illustrationCaption', class:'illustrationCaption'}), el('div', {id:'illustrationImageFrame', class:'illustrationImageFrame'}), el('div', {id:'illustrationPartResult', 'aria-live':'polite'}));
   illustration.append(viewer); genericPanel.append(illustration);
   const legacyPartSearch = $('partSearch');
-  legacyPartSearch.before(genericPanel);
   legacyGeneric.hidden = true;
   legacyPartSearch.hidden = true;
+
+  const tabs = el('div', {class:'homeTabs', role:'tablist', 'aria-label':'Catalogue views'});
+  const panels = [
+    ['vehicles', 'Vehicles', ['savedVehicles','searchForm','results','vehicle','groups'].map($)],
+    ['parts', 'Find a part', [genericPanel]],
+    ['generic', 'Generic search', [genericDetails, el('div', {id:'genericGroups'})]]
+  ];
+  const packPrompt = (message) => {
+    const prompt = el('div', {class:'settingsInfo', text:message});
+    const link = el('button', {type:'button', text:'Open data pack settings'});
+    link.addEventListener('click', () => { $('settings').click(); $('dataTab').click(); });
+    prompt.append(link);
+    return prompt;
+  };
+  const missingChassis = packPrompt('Import a Chassis Data Pack to search by chassis number or open saved vehicles.');
+  const missingParts = packPrompt('Import a Generic Search Data Pack to find a part.');
+  panels[0][2].push(missingChassis);
+  panels[1][2].push(missingParts);
+  genericDetails.open = true;
+  genericDetails.querySelector('summary').hidden = true;
+  genericDetails.prepend(el('h2', {text:'Generic search'}));
+  $('connection').after(tabs);
+  const views = panels.map(([key, title, nodes], index) => {
+    const tab = el('button', {type:'button', id:'homeTab-'+key, role:'tab', 'aria-controls':'homePanel-'+key, text:title});
+    const panel = el('section', {id:'homePanel-'+key, class:'homePanel', role:'tabpanel', 'aria-labelledby':tab.id});
+    tabs.append(tab);
+    panel.append(...nodes);
+    legacyPartSearch.before(panel);
+    tab.addEventListener('click', () => selectTab(index));
+    tab.addEventListener('keydown', event => {
+      const target = {ArrowLeft:(index+2)%3, ArrowRight:(index+1)%3, Home:0, End:2}[event.key];
+      if (target === undefined) return;
+      event.preventDefault();
+      selectTab(target);
+      views[target].tab.focus();
+    });
+    return {tab, panel};
+  });
+  function selectTab(index) {
+    views.forEach(({tab,panel}, i) => {
+      tab.setAttribute('aria-selected', String(i === index));
+      tab.tabIndex = i === index ? 0 : -1;
+      panel.hidden = i !== index;
+    });
+  }
+  selectTab(0);
 
   const updatePackControls = () => {
     const ready = !!model.options[1];
     genericPanel.hidden = !ready;
+    missingParts.hidden = ready;
     missingPrompt.hidden = ready;
     searchRoot.hidden = !ready;
     genericSummary.textContent = ready ? status.textContent : 'No Generic Search Data Pack imported on this device.';
@@ -130,6 +176,7 @@
     const genericReady = !!model.options[1];
     const dataLabel = $('dataStatus').textContent.trim();
     const chassisReady = /^ASA\s/.test(dataLabel) && !dataLabel.startsWith('Generic Search');
+    missingChassis.hidden = chassisReady;
     document.body.classList.toggle('generic-only', genericReady && !chassisReady);
     if (genericReady && !chassisReady) {
       $('setup').hidden = true;
@@ -156,7 +203,7 @@
     try {
       await loadScript('./generic-v81.js?v=2');
       await loadScript('./model-browse.js?v=12');
-      await loadScript('./model-illustrations.js?v=8');
+      await loadScript('./model-illustrations.js?v=9');
       updateHome();
     } catch (error) {
       genericSummary.textContent = 'Generic Search Data Pack features could not start: ' + error.message;
